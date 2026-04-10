@@ -1,0 +1,137 @@
+[
+  {
+    "model": "triage.handler",
+    "pk": 1,
+    "fields": {
+      "name": "Sarah Chen",
+      "role": "Senior Marine Cargo Claims Handler",
+      "region": "EMEA",
+      "speciality": "refrigerated and temperature-sensitive cargo",
+      "licenses": "ACII, Lloyd's Market Accreditation",
+      "expertise_tags": "refrigerated cargo, temperature-sensitive, cold chain, perishables, reefer containers, temperature excursion",
+      "bio": "Sarah leads EMEA perishable and temperature-controlled cargo claims. She has managed major reefer losses across European and Middle Eastern ports and is the go-to handler for cold chain documentation disputes.",
+      "experience_years": 11,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 2,
+    "fields": {
+      "name": "James Okafor",
+      "role": "Marine Cargo Claims Handler",
+      "region": "EMEA",
+      "speciality": "bulk commodity and general cargo",
+      "licenses": "ACII",
+      "expertise_tags": "bulk commodity, general cargo, breakbulk, steel, grain, fertiliser, container shipping",
+      "bio": "James handles bulk and general cargo losses across EMEA, with particular experience in West African transit routes and port damage claims at Rotterdam, Hamburg, and Antwerp.",
+      "experience_years": 7,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 3,
+    "fields": {
+      "name": "Priya Nair",
+      "role": "Liability Claims Handler",
+      "region": "APAC",
+      "speciality": "third-party liability and product liability",
+      "licenses": "ANZIFF, ACII",
+      "expertise_tags": "third-party liability, product liability, bodily injury, personal injury, recall, regulatory exposure",
+      "bio": "Priya manages third-party and product liability claims across APAC. She has extensive experience with cross-border litigation in Singapore and Hong Kong jurisdiction and has handled several product recall cases for food and pharmaceutical exporters.",
+      "experience_years": 9,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 4,
+    "fields": {
+      "name": "Marco Bianchi",
+      "role": "Senior Marine Claims Handler",
+      "region": "Americas",
+      "speciality": "hull, perishables, and cargo transit",
+      "licenses": "FCII, CPCU",
+      "expertise_tags": "hull, perishables, cargo transit, vessel damage, dry-dock, constructive total loss, refrigerated cargo",
+      "bio": "Marco is a senior handler covering both hull and cargo lines in the Americas. Based in Miami, he regularly manages losses across South American ports and has deep expertise in vessel damage assessment and total loss negotiations with P&I clubs.",
+      "experience_years": 14,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 5,
+    "fields": {
+      "name": "Ayesha Rahman",
+      "role": "Liability and Property Claims Handler",
+      "region": "EMEA",
+      "speciality": "commercial property and general liability",
+      "licenses": "ACII, Chartered Insurance Practitioner",
+      "expertise_tags": "commercial property, general liability, fire, flood, warehouse damage, slip and fall, business interruption",
+      "bio": "Ayesha handles commercial property and general liability claims across EMEA. She has particular experience in warehouse and logistics hub losses and regularly works with loss adjusters across the UK, France, and the Gulf states.",
+      "experience_years": 8,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 6,
+    "fields": {
+      "name": "Lena Park",
+      "role": "Marine Cargo Claims Handler",
+      "region": "APAC",
+      "speciality": "marine cargo, bulk commodity, and container shipping",
+      "licenses": "ACII, Korean Insurance Institute",
+      "expertise_tags": "marine cargo, bulk commodity, container shipping, electronics, automotive parts, Korean ports, China routes",
+      "bio": "Lena manages marine cargo claims across APAC with a focus on Korea-China-Japan trade routes and high-value consumer electronics and automotive component shipments. She is fluent in Korean and Mandarin.",
+      "experience_years": 6,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 7,
+    "fields": {
+      "name": "Carlos Mendez",
+      "role": "Liability Claims Handler",
+      "region": "Americas",
+      "speciality": "third-party liability and product liability",
+      "licenses": "CPCU, ARM",
+      "expertise_tags": "third-party liability, product liability, bodily injury, premises liability, trucking liability, US litigation",
+      "bio": "Carlos handles third-party and product liability claims across the Americas, with a focus on US and Mexican jurisdiction. He has managed complex trucking liability cases and multi-party bodily injury claims in both federal and state courts.",
+      "experience_years": 10,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 8,
+    "fields": {
+      "name": "Diana Walsh",
+      "role": "Property Claims Handler",
+      "region": "Americas",
+      "speciality": "commercial property and general liability",
+      "licenses": "CPCU, AIC",
+      "expertise_tags": "commercial property, general liability, natural catastrophe, wind, flood, fire, business interruption, CAT claims",
+      "bio": "Diana specialises in commercial property and CAT claims across the Americas. She has extensive experience managing large-scale natural catastrophe losses including hurricane, flood, and wildfire events across the US and Caribbean.",
+      "experience_years": 12,
+      "active": true
+    }
+  },
+  {
+    "model": "triage.handler",
+    "pk": 9,
+    "fields": {
+      "name": "Tom Kowalski",
+      "role": "Complex Claims Escalation Lead",
+      "region": "Global",
+      "speciality": "critical and high-value multi-line claims",
+      "licenses": "FCII, CPCU, Chartered Insurance Practitioner",
+      "expertise_tags": "complex claims, multi-line, high-value, escalation, cross-border, regulatory, catastrophic loss, legal exposure",
+      "bio": "Tom leads the escalation desk for critical and complex multi-line claims globally. He coordinates across claim types, jurisdictions, and reinsurance structures. Prior to Nacora he spent eight years at Lloyd's managing major loss events and catastrophic liability cases.",
+      "experience_years": 18,
+      "active": true
+    }
+  }
+]

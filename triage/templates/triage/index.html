@@ -16,19 +16,57 @@
     button { margin-top: 1.2rem; width: 100%; padding: 0.85rem; background: #1d4ed8; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
     button:hover { background: #1e40af; }
     .hint { margin-top: 1rem; font-size: 0.8rem; color: #888; }
+    .footer-link { margin-top: 1rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
+    .footer-link:hover { text-decoration: underline; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #1d4ed8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>ClaimSprint</h1>
     <p class="subtitle">Paste a First Notice of Loss below. The system will classify the claim, assess severity, and recommend a handler.</p>
-    <form method="post">
-      {% csrf_token %}
-      <label for="fnol_text">FNOL Text</label>
-      <textarea id="fnol_text" name="fnol_text" rows="18" placeholder="Paste the claim notification here..."></textarea>
-      <button type="submit" id="submitBtn" onclick="this.disabled=true; this.textContent='Processing\u2026'; this.form.submit();">Triage Claim</button>
-    </form>
-    <p class="hint">Processing takes 5-10 seconds. Do not refresh the page.</p>
+    <div id="form-body">
+      <form method="post" id="triage-form">
+        {% csrf_token %}
+        <label for="fnol_text">FNOL Text</label>
+        <textarea id="fnol_text" name="fnol_text" rows="18" placeholder="Paste the claim notification here..."></textarea>
+        <button type="submit" id="submitBtn" onclick="return submitForm(this);">Triage Claim</button>
+      </form>
+      <p class="hint">Processing takes 5-10 seconds. Do not refresh the page.</p>
+    </div>
+    <div id="loader" style="display:none; flex-direction:column; align-items:center; padding:3rem 0;">
+      <div class="spinner"></div>
+      <p id="loader-msg" style="margin-top:1.5rem; font-size:0.95rem; color:#374151;">Analysing claim&#8230;</p>
+    </div>
   </div>
+  <div style="display:flex; gap:1.5rem; margin-top:0.75rem;">
+    <a class="footer-link" style="margin-top:0;" href="/staff/">Staff Directory</a>
+    <a class="footer-link" style="margin-top:0;" href="/history/">Audit Log &#8594;</a>
+    <a class="footer-link" style="margin-top:0;" href="/settings/">Settings</a>
+  </div>
+
+  <script>
+    function submitForm(btn) {
+      var text = document.getElementById('fnol_text').value.trim();
+      if (!text) return false;
+      document.getElementById('form-body').style.display = 'none';
+      document.getElementById('loader').style.display = 'flex';
+      var msgs = ['Analysing claim\u2026', 'Assessing severity\u2026', 'Selecting handler\u2026'];
+      var i = 0;
+      setInterval(function() {
+        i = (i + 1) % msgs.length;
+        document.getElementById('loader-msg').textContent = msgs[i];
+      }, 2500);
+      document.getElementById('triage-form').submit();
+      return false;
+    }
+  </script>
 </body>
 </html>

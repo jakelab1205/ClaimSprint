@@ -7,44 +7,459 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; padding: 2rem; }
-    .wrapper { max-width: 780px; margin: 0 auto; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
-    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
+    .wrapper { max-width: 860px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
     .back:hover { text-decoration: underline; }
 
-    .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.8rem 2rem; margin-bottom: 1.2rem; }
-    .card-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin-bottom: 0.5rem; }
-    .card-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .card-sub { font-size: 0.9rem; color: #555; }
+    /* ── Shared card base ── */
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
+    .card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.5rem; }
 
-    .severity-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.8rem; }
+    /* ── Severity badges ── */
+    .severity-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
     .severity-low    { background: #d1fae5; color: #065f46; }
     .severity-medium { background: #fef3c7; color: #92400e; }
     .severity-high   { background: #fee2e2; color: #991b1b; }
     .severity-critical { background: #7f1d1d; color: #fff; }
 
-    ul { list-style: none; padding: 0; }
-    ul li { padding: 0.35rem 0; padding-left: 1.2rem; position: relative; font-size: 0.92rem; line-height: 1.5; }
-    ul li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+    /* ── Zone 1: Summary Strip ── */
+    .summary-strip {
+      display: grid;
+      grid-template-columns: 2fr 1fr 2fr;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
 
-    .action-code { font-family: "SF Mono", "Fira Code", monospace; background: #f0f4ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 0.2rem 0.55rem; border-radius: 4px; font-size: 0.85rem; }
-    .action-reasoning { margin-top: 0.75rem; font-size: 0.92rem; line-height: 1.6; color: #374151; }
+    .strip-col { padding: 1.25rem 1.5rem; }
+    .strip-col + .strip-col { border-left: 1px solid #e5e7eb; }
 
-    .handler-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1.5rem; margin-bottom: 0.75rem; }
-    .handler-field { font-size: 0.85rem; }
-    .handler-field strong { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; margin-bottom: 0.1rem; }
-    .handler-reason { font-size: 0.9rem; color: #374151; line-height: 1.55; border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.25rem; }
+    .strip-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 0.35rem;
+    }
 
+    .strip-claim-type { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+    .strip-claim-sub { font-size: 0.85rem; color: #6b7280; margin-top: 0.2rem; }
+
+    .strip-col--severity {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .strip-col--severity .severity-badge { font-size: 1rem; padding: 0.3rem 0.9rem; }
+
+    .strip-action-label { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.2rem; }
+
+    .strip-col--action-alert { border-left-color: #fbbf24 !important; background: #fffbeb; }
+    .strip-col--action-reject { border-left-color: #fca5a5 !important; background: #fff1f2; }
+
+    /* ── "See reasoning" button (slide panel) ── */
+    .see-reasoning-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #2563eb;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.4rem;
+    }
+    .see-reasoning-btn::before { content: "▶"; font-size: 0.55rem; }
+    .see-reasoning-btn:hover { text-decoration: underline; }
+
+    /* ── Zone 2: Middle Row ── */
+    .middle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .handler-card { padding: 1.25rem 1.5rem; }
+    .handler-name { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.6rem; }
+    .handler-meta { font-size: 0.85rem; color: #374151; line-height: 1.6; }
+    .handler-field-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9ca3af;
+      margin-right: 0.3rem;
+    }
+    .handler-reason-line {
+      font-size: 0.82rem;
+      font-style: italic;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 0.6rem;
+      margin-top: 0.6rem;
+      line-height: 1.5;
+    }
+
+    .factors-card { padding: 1.25rem 1.5rem; }
+    .factors-list { list-style: none; padding: 0; margin-top: 0.5rem; }
+    .factors-list li {
+      padding: 0.3rem 0;
+      padding-left: 1.2rem;
+      position: relative;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: #374151;
+    }
+    .factors-list li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+
+    /* ── Zone 3: Coverage Pills ── */
+    .coverage-pills {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+      padding: 0 0.25rem;
+    }
+    .coverage-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+    }
+    .coverage-pill {
+      display: inline-block;
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+    }
+
+    /* ── Verify reasoning button ── */
+    .verify-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: none;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .verify-btn:hover { border-color: #9ca3af; background: #f9fafb; }
+    .verify-btn::after { content: "▶"; font-size: 0.5rem; color: #9ca3af; }
+
+    /* ── Zone 4: Collapsible FNOL ── */
+    .fnol-details {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+      overflow: hidden;
+    }
+    .fnol-summary {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #374151;
+      padding: 0.85rem 1.5rem;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .fnol-summary::-webkit-details-marker { display: none; }
+    .fnol-summary::before { content: "▶"; font-size: 0.6rem; color: #9ca3af; transition: transform 0.15s ease; }
+    details[open] .fnol-summary::before { transform: rotate(90deg); }
+    details .fnol-preview { margin: 0 1.5rem 1rem; }
+
+    .fnol-preview {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #374151;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* ── Error ── */
     .error-card { background: #fff1f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1.5rem 2rem; color: #991b1b; }
+    .ai-disclaimer { background: #fffbeb; border: 1px solid #fbbf24; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 600; color: #78350f; margin-bottom: 1rem; }
 
-    .fnol-preview { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem 1.2rem; font-family: "SF Mono", "Fira Code", monospace; font-size: 0.8rem; line-height: 1.6; color: #374151; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; }
+    /* ── Slide-in detail panel (action reasoning) ── */
+    .detail-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      height: 100vh;
+      width: 320px;
+      background: #fff;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.13);
+      transform: translateX(100%);
+      transition: transform 0.22s ease;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+    body.panel-open .detail-panel { transform: translateX(0); }
+
+    .panel-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.18);
+      z-index: 99;
+    }
+    body.panel-open .panel-backdrop { display: block; }
+
+    .detail-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .detail-panel-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .detail-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: #9ca3af;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.1rem 0.3rem;
+    }
+    .detail-panel-close:hover { color: #374151; }
+    .detail-panel-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
+
+    .panel-list { list-style: none; padding: 0; }
+    .panel-list li {
+      padding: 0.35rem 0;
+      padding-left: 1.1rem;
+      position: relative;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #374151;
+    }
+    .panel-list li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+
+    /* ── AI Reasoning Modal ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      width: 100%;
+      max-width: 580px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: #9ca3af;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+    .modal-close:hover { color: #374151; background: #f3f4f6; }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .modal-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 0.6rem;
+    }
+
+    .modal-divider { border: none; border-top: 1px solid #e5e7eb; margin: 0; }
+
+    /* confidence in modal */
+    .modal-conf-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.5rem;
+    }
+    .modal-conf-score { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; }
+    .modal-conf-tier { font-size: 0.82rem; color: #6b7280; }
+    .modal-bar-track { height: 5px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
+    .modal-bar-fill { height: 100%; border-radius: 999px; }
+    .conf-high { background: #10b981; }
+    .conf-mid  { background: #f59e0b; }
+    .conf-low  { background: #ef4444; }
+    .modal-conf-desc { font-size: 0.82rem; color: #6b7280; line-height: 1.5; }
+
+    /* decision trace in modal */
+    .modal-trace-list {
+      list-style: none;
+      padding: 0;
+      counter-reset: trace;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .modal-trace-list li {
+      counter-increment: trace;
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: #374151;
+    }
+    .modal-trace-list li::before {
+      content: counter(trace);
+      flex-shrink: 0;
+      width: 1.4rem;
+      height: 1.4rem;
+      background: #f3f4f6;
+      border-radius: 50%;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.1rem;
+    }
+
+    /* risk flags in modal */
+    .modal-flag-card {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+    }
+    .modal-flag-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 0.5rem;
+    }
+    .modal-flag-sublabel {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #b45309;
+      margin-bottom: 0.3rem;
+    }
+    .modal-flag-checks {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 0.6rem;
+    }
+    .modal-flag-checks li {
+      font-size: 0.83rem;
+      color: #78350f;
+      line-height: 1.5;
+      padding: 0.15rem 0 0.15rem 1.1rem;
+      position: relative;
+    }
+    .modal-flag-checks li::before { content: "—"; position: absolute; left: 0; color: #d97706; }
+    .modal-flag-risk {
+      font-size: 0.8rem;
+      color: #92400e;
+      font-style: italic;
+      border-top: 1px solid #fcd34d;
+      padding-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      .summary-strip { grid-template-columns: 1fr; }
+      .strip-col + .strip-col { border-left: none; border-top: 1px solid #e5e7eb; }
+      .strip-col--action-alert { border-left: none !important; border-top: 2px solid #fbbf24 !important; }
+      .strip-col--action-reject { border-left: none !important; border-top: 2px solid #fca5a5 !important; }
+      .middle-row { grid-template-columns: 1fr; }
+      .detail-panel { width: 100%; }
+      .modal { max-height: 92vh; }
+    }
   </style>
 </head>
 <body>
   <div class="wrapper">
-    <a class="back" href="/">&#8592; Triage another claim</a>
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
+      <a class="back" style="margin-bottom:0;" href="/">&#8592; Triage another claim</a>
+      <div style="display:flex; gap:1.25rem;">
+        <a class="back" style="margin-bottom:0;" href="/staff/">Staff Directory</a>
+        <a class="back" style="margin-bottom:0;" href="/history/">Audit Log &#8594;</a>
+      </div>
+    </div>
     <h1>Triage Result</h1>
-    <p style="color:#6b7280; font-size:0.9rem; margin-bottom:1.5rem;">Generated by ClaimSprint</p>
+
+    <div class="ai-disclaimer">
+      AI-assisted triage &mdash; requires human review before any claim decision
+    </div>
 
     {% if result.error %}
       <div class="error-card">
@@ -55,69 +470,213 @@
 
     {% else %}
 
-      <!-- Output 1: Claim Type -->
-      <div class="card">
-        <div class="card-label">Output 1 — Claim Type</div>
-        <div class="card-title">{{ result.claim_type|title }}</div>
-        <div class="card-sub">{{ result.claim_subtype }}</div>
-      </div>
+      <!-- Zone 1: Summary Strip -->
+      <div class="summary-strip">
 
-      <!-- Output 2: Severity -->
-      <div class="card">
-        <div class="card-label">Output 2 — Severity</div>
-        <span class="severity-badge severity-{{ result.severity|lower }}">{{ result.severity }}</span>
-        <ul>
-          {% for factor in result.severity_factors %}
-            <li>{{ factor }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-
-      <!-- Output 3: Recommended Action -->
-      <div class="card">
-        <div class="card-label">Output 3 — Recommended Action</div>
-        <div style="margin-bottom:0.5rem;"><span class="action-code">{{ result.recommended_action }}</span></div>
-        <div class="action-reasoning">{{ result.action_reasoning }}</div>
-      </div>
-
-      <!-- Output 4: Handler -->
-      <div class="card">
-        <div class="card-label">Output 4 — Recommended Handler</div>
-        <div class="card-title" style="margin-bottom:0.75rem;">{{ result.recommended_handler.name }}</div>
-        <div class="handler-grid">
-          <div class="handler-field">
-            <strong>Role</strong>{{ result.recommended_handler.role }}
-          </div>
-          <div class="handler-field">
-            <strong>Region</strong>{{ result.recommended_handler.region }}
-          </div>
-          <div class="handler-field" style="grid-column: 1 / -1;">
-            <strong>Speciality</strong>{{ result.recommended_handler.speciality }}
-          </div>
+        <div class="strip-col">
+          <div class="strip-eyebrow">Claim Type</div>
+          <div class="strip-claim-type">{{ result.claim_type|title }}</div>
+          <div class="strip-claim-sub">{{ result.claim_subtype }}</div>
         </div>
-        <div class="handler-reason">{{ result.recommended_handler.reason }}</div>
+
+        <div class="strip-col strip-col--severity">
+          <div class="strip-eyebrow">Severity</div>
+          <span class="severity-badge severity-{{ result.severity|lower }}">{{ result.severity }}</span>
+        </div>
+
+        <div class="strip-col
+          {% if result.recommended_action == 'assign_to_handler_urgent' or result.recommended_action == 'escalate_to_senior' %}strip-col--action-alert
+          {% elif result.recommended_action == 'reject' %}strip-col--action-reject
+          {% endif %}
+        ">
+          <div class="strip-eyebrow">Action</div>
+          <div class="strip-action-label">
+            {% if result.recommended_action == 'assign_to_handler' %}Assign to Handler
+            {% elif result.recommended_action == 'assign_to_handler_urgent' %}Assign &mdash; Urgent
+            {% elif result.recommended_action == 'escalate_to_senior' %}Escalate to Senior
+            {% elif result.recommended_action == 'request_documentation' %}Request Documentation
+            {% elif result.recommended_action == 'reject' %}Reject Claim
+            {% else %}{{ result.recommended_action }}
+            {% endif %}
+          </div>
+          {% if result.action_reasoning %}
+          <button class="see-reasoning-btn" onclick="openPanel('Action Reasoning', 'panel-src-action')">
+            See reasoning
+          </button>
+          {% endif %}
+        </div>
+
       </div>
 
-      <!-- Output 5: Coverage Flags (conditional) -->
+      <!-- Zone 2: Handler + Severity Factors -->
+      <div class="middle-row">
+
+        <div class="card handler-card">
+          <div class="handler-name">{{ result.recommended_handler.name }}</div>
+          <div class="handler-meta"><span class="handler-field-label">Role</span>{{ result.recommended_handler.role }}</div>
+          <div class="handler-meta"><span class="handler-field-label">Region</span>{{ result.recommended_handler.region }}</div>
+          <div class="handler-meta"><span class="handler-field-label">Speciality</span>{{ result.recommended_handler.speciality }}</div>
+          <div class="handler-reason-line">{{ result.recommended_handler.reason }}</div>
+        </div>
+
+        <div class="card factors-card">
+          <div class="card-label">Severity Factors</div>
+          <ul class="factors-list">
+            {% for factor in result.severity_factors %}
+              <li>{{ factor }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Zone 3: Coverage Flags -->
       {% if result.coverage_flags %}
-      <div class="card">
-        <div class="card-label">Coverage Flags</div>
-        <ul>
-          {% for flag in result.coverage_flags %}
-            <li>{{ flag }}</li>
-          {% endfor %}
-        </ul>
+      <div class="coverage-pills">
+        <span class="coverage-label">Coverage flags</span>
+        {% for flag in result.coverage_flags %}
+          <span class="coverage-pill">{{ flag }}</span>
+        {% endfor %}
       </div>
       {% endif %}
 
+      <!-- Verify AI reasoning button -->
+      {% if result.confidence_score is not None or result.reasoning_chain or result.risk_flag_explanation %}
+      <button class="verify-btn" onclick="openReasoningModal()">Verify AI reasoning</button>
+      {% endif %}
+
+      <!-- Hidden panel content sources -->
+      <div id="panel-src-action" hidden>
+        <ul class="panel-list">
+          {% for step in result.action_reasoning %}
+            <li>{{ step }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
     {% endif %}
 
-    <!-- FNOL submitted -->
-    <div class="card" style="margin-top:0;">
-      <div class="card-label">FNOL Submitted</div>
+    <!-- Zone 4: Collapsible FNOL -->
+    <details class="fnol-details">
+      <summary class="fnol-summary">View submitted FNOL text</summary>
       <div class="fnol-preview">{{ fnol_text }}</div>
-    </div>
+    </details>
 
   </div>
+
+  <!-- Right-side detail panel (action reasoning) -->
+  <div id="detail-panel" class="detail-panel">
+    <div class="detail-panel-header">
+      <span class="detail-panel-title" id="panel-title"></span>
+      <button class="detail-panel-close" onclick="closePanel()">&#x2715;</button>
+    </div>
+    <div class="detail-panel-body" id="panel-body"></div>
+  </div>
+  <div id="panel-backdrop" class="panel-backdrop" onclick="closePanel()"></div>
+
+  <!-- AI Reasoning Modal -->
+  <div id="reasoning-modal-backdrop" class="modal-backdrop" onclick="closeReasoningModal(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-heading">AI Reasoning</span>
+        <button class="modal-close" onclick="closeReasoningModal()" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+
+        {% if result.confidence_score is not None %}
+        {% with score=result.confidence_score %}
+        <div>
+          <div class="modal-section-label">Confidence score</div>
+          <div class="modal-conf-row">
+            <span class="modal-conf-score">{{ score|floatformat:2 }}</span>
+            <span class="modal-conf-tier">
+              {% if score >= 0.75 %}High confidence
+              {% elif score >= 0.5 %}Moderate confidence
+              {% else %}Low confidence
+              {% endif %}
+            </span>
+          </div>
+          <div class="modal-bar-track">
+            <div class="modal-bar-fill {% if score >= 0.75 %}conf-high{% elif score >= 0.5 %}conf-mid{% else %}conf-low{% endif %}"
+                 style="width: {% widthratio score 1 100 %}%"></div>
+          </div>
+          <div class="modal-conf-desc">
+            {% if score >= 0.75 %}FNOL is well-documented and classification is unambiguous. Handler can proceed with confidence.
+            {% elif score >= 0.5 %}Some details are missing or were inferred. Review the decision trace before assigning.
+            {% else %}FNOL is sparse or ambiguous. Treat this result as provisional and request additional documentation before proceeding.
+            {% endif %}
+          </div>
+        </div>
+        {% endwith %}
+        {% endif %}
+
+        {% if result.reasoning_chain %}
+        <hr class="modal-divider">
+        <div>
+          <div class="modal-section-label">Decision trace</div>
+          <ol class="modal-trace-list">
+            {% for step in result.reasoning_chain %}
+              <li>{{ step }}</li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+
+        {% if result.risk_flag_explanations %}
+        <hr class="modal-divider">
+        <div>
+          <div class="modal-section-label">Coverage flag detail</div>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            {% for item in result.risk_flag_explanations %}
+            <div class="modal-flag-card">
+              <div class="modal-flag-name">{{ item.flag }}</div>
+              {% if item.must_verify %}
+              <div class="modal-flag-sublabel">Must verify</div>
+              <ul class="modal-flag-checks">
+                {% for check in item.must_verify %}
+                  <li>{{ check }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+              {% if item.risk_if_unverified %}
+              <div class="modal-flag-risk">{{ item.risk_if_unverified }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openPanel(title, srcId) {
+      document.getElementById('panel-title').textContent = title;
+      document.getElementById('panel-body').innerHTML =
+        document.getElementById(srcId).innerHTML;
+      document.body.classList.add('panel-open');
+    }
+    function closePanel() {
+      document.body.classList.remove('panel-open');
+    }
+
+    function openReasoningModal() {
+      document.getElementById('reasoning-modal-backdrop').classList.add('open');
+    }
+    function closeReasoningModal(event) {
+      if (!event || event.target === document.getElementById('reasoning-modal-backdrop')) {
+        document.getElementById('reasoning-modal-backdrop').classList.remove('open');
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closePanel();
+        document.getElementById('reasoning-modal-backdrop').classList.remove('open');
+      }
+    });
+  </script>
 </body>
 </html>

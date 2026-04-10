@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaimSprint — Staff Directory</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; padding: 2rem; }
+    .wrapper { max-width: 1040px; margin: 0 auto; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; }
+    .back { font-size: 0.9rem; color: #2563eb; text-decoration: none; }
+    .back:hover { text-decoration: underline; }
+
+    .region-section { margin-bottom: 2rem; }
+    .region-heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
+      margin-bottom: 0.75rem;
+      padding-left: 0.25rem;
+    }
+
+    .handler-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .handler-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 1.4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; }
+    .handler-name { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+    .handler-role { font-size: 0.82rem; color: #6b7280; margin-top: 0.2rem; }
+
+    .region-badge {
+      flex-shrink: 0;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+    }
+    .region-emea    { background: #dbeafe; color: #1e40af; }
+    .region-apac    { background: #d1fae5; color: #065f46; }
+    .region-americas { background: #fce7f3; color: #831843; }
+    .region-global  { background: #f3e8ff; color: #6b21a8; }
+
+    .field-row { font-size: 0.84rem; color: #374151; line-height: 1.5; }
+    .field-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .bio { font-size: 0.82rem; color: #6b7280; line-height: 1.55; border-top: 1px solid #f3f4f6; padding-top: 0.65rem; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: #f3f4f6;
+      color: #374151;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .exp-line { font-size: 0.78rem; color: #6b7280; }
+    .exp-num { font-weight: 700; color: #1a1a2e; }
+
+    @media (max-width: 640px) {
+      body { padding: 1rem; }
+      .handler-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="page-header">
+      <h1>Staff Directory</h1>
+      <a class="back" href="/">&#8592; Triage a claim</a>
+    </div>
+
+    {% for region, handlers in regions %}
+    <div class="region-section">
+      <div class="region-heading">{{ region }}</div>
+      <div class="handler-grid">
+        {% for handler in handlers %}
+        <div class="handler-card">
+
+          <div class="card-top">
+            <div>
+              <div class="handler-name">{{ handler.name }}</div>
+              <div class="handler-role">{{ handler.role }}</div>
+            </div>
+            <span class="region-badge region-{{ handler.region|lower|cut:" " }}">{{ handler.region }}</span>
+          </div>
+
+          <div>
+            <span class="field-label">Speciality</span>
+            <div class="field-row">{{ handler.speciality }}</div>
+          </div>
+
+          {% if handler.licenses %}
+          <div>
+            <span class="field-label">Licences</span>
+            <div class="field-row">{{ handler.licenses }}</div>
+          </div>
+          {% endif %}
+
+          {% with tags=handler.expertise_list %}
+          {% if tags %}
+          <div>
+            <span class="field-label">Expertise</span>
+            <div class="tag-row">
+              {% for tag in tags %}
+                <span class="tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          {% if handler.experience_years %}
+          <div class="exp-line"><span class="exp-num">{{ handler.experience_years }}</span> years experience</div>
+          {% endif %}
+
+          {% if handler.bio %}
+          <div class="bio">{{ handler.bio }}</div>
+          {% endif %}
+
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaimSprint — Audit Log</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; padding: 2rem; }
+    .wrapper { max-width: 960px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
+    .back:hover { text-decoration: underline; }
+
+    .severity-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 700; font-size: 0.78rem; white-space: nowrap; }
+    .severity-low    { background: #d1fae5; color: #065f46; }
+    .severity-medium { background: #fef3c7; color: #92400e; }
+    .severity-high   { background: #fee2e2; color: #991b1b; }
+    .severity-critical { background: #7f1d1d; color: #fff; }
+
+    .table-wrap {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #f9fafb; }
+    thead th {
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    tbody tr { border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fafb; }
+    tbody td { padding: 0.85rem 1.25rem; font-size: 0.88rem; color: #374151; vertical-align: top; }
+
+    .claim-type { font-weight: 600; color: #1a1a2e; }
+    .claim-subtype { font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
+
+    .action-label { font-size: 0.88rem; color: #374151; }
+    .action-urgent { color: #92400e; font-weight: 600; }
+    .action-reject { color: #991b1b; font-weight: 600; }
+    .action-escalate { color: #92400e; font-weight: 600; }
+
+    .handler-name { font-weight: 600; color: #1a1a2e; }
+    .handler-region { font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
+
+    .timestamp { font-size: 0.82rem; color: #6b7280; white-space: nowrap; }
+
+    /* Expanded row detail */
+    .detail-row td { background: #f9fafb; padding: 1rem 1.25rem 1.25rem; }
+    .detail-row { display: none; }
+    .detail-row.visible { display: table-row; }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .detail-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 0.4rem;
+    }
+    .detail-list { list-style: none; padding: 0; }
+    .detail-list li {
+      padding: 0.25rem 0;
+      padding-left: 1.1rem;
+      position: relative;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      color: #374151;
+    }
+    .detail-list li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+
+    .coverage-pill {
+      display: inline-block;
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      margin: 0.2rem 0.2rem 0 0;
+    }
+
+    .handler-reason {
+      font-style: italic;
+      font-size: 0.82rem;
+      color: #6b7280;
+      margin-top: 0.4rem;
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: #9ca3af;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 1rem; }
+      thead th:nth-child(4), tbody td:nth-child(4),
+      thead th:nth-child(6), tbody td:nth-child(6) { display: none; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
+      <h1>Audit Log</h1>
+      <div style="display:flex; gap:1.25rem; align-items:center;">
+        <a class="back" style="margin-bottom:0;" href="/staff/">Staff Directory</a>
+        <a class="back" style="margin-bottom:0;" href="/">&#8592; Triage a claim</a>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      {% if entries %}
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Claim</th>
+            <th>Severity</th>
+            <th>Action</th>
+            <th>Handler</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr onclick="toggleDetail('detail-{{ forloop.counter }}', this)">
+            <td class="timestamp">{{ entry.timestamp|slice:":16"|cut:"T" }}</td>
+            <td>
+              <div class="claim-type">{{ entry.claim_type|title }}</div>
+              <div class="claim-subtype">{{ entry.claim_subtype }}</div>
+            </td>
+            <td>
+              <span class="severity-badge severity-{{ entry.severity|lower }}">{{ entry.severity }}</span>
+            </td>
+            <td>
+              <span class="action-label
+                {% if entry.recommended_action == 'assign_to_handler_urgent' or entry.recommended_action == 'escalate_to_senior' %}action-urgent
+                {% elif entry.recommended_action == 'reject' %}action-reject
+                {% endif %}
+              ">
+                {% if entry.recommended_action == 'assign_to_handler' %}Assign to Handler
+                {% elif entry.recommended_action == 'assign_to_handler_urgent' %}Assign &mdash; Urgent
+                {% elif entry.recommended_action == 'escalate_to_senior' %}Escalate to Senior
+                {% elif entry.recommended_action == 'request_documentation' %}Request Documentation
+                {% elif entry.recommended_action == 'reject' %}Reject Claim
+                {% else %}{{ entry.recommended_action }}
+                {% endif %}
+              </span>
+            </td>
+            <td>
+              <div class="handler-name">{{ entry.recommended_handler.name }}</div>
+              <div class="handler-region">{{ entry.recommended_handler.region }}</div>
+            </td>
+            <td class="timestamp">
+              {% if entry.confidence_score is not None %}{{ entry.confidence_score|floatformat:2 }}{% else %}&mdash;{% endif %}
+            </td>
+          </tr>
+          <tr class="detail-row" id="detail-{{ forloop.counter }}">
+            <td colspan="6">
+              <div class="detail-grid">
+                <div>
+                  <div class="detail-section-label">Severity Factors</div>
+                  <ul class="detail-list">
+                    {% for f in entry.severity_factors %}
+                      <li>{{ f }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div>
+                  <div class="detail-section-label">Action Reasoning</div>
+                  <ul class="detail-list">
+                    {% for step in entry.action_reasoning %}
+                      <li>{{ step }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div>
+                  <div class="detail-section-label">Handler</div>
+                  <div style="font-size:0.85rem; color:#374151;">
+                    <strong>{{ entry.recommended_handler.name }}</strong><br>
+                    {{ entry.recommended_handler.role }}<br>
+                    {{ entry.recommended_handler.speciality }}
+                  </div>
+                  <div class="handler-reason">{{ entry.recommended_handler.reason }}</div>
+                </div>
+                {% if entry.coverage_flags %}
+                <div>
+                  <div class="detail-section-label">Coverage Flags</div>
+                  {% for flag in entry.coverage_flags %}
+                    <span class="coverage-pill">{{ flag }}</span>
+                  {% endfor %}
+                  {% if entry.risk_flag_explanations %}
+                  {% for item in entry.risk_flag_explanations %}
+                  <div style="font-size:0.8rem; color:#92400e; margin-top:0.4rem; line-height:1.5;"><strong>{{ item.flag }}:</strong> {{ item.risk_if_unverified }}</div>
+                  {% endfor %}
+                  {% endif %}
+                </div>
+                {% endif %}
+                {% if entry.reasoning_chain %}
+                <div style="grid-column: 1 / -1;">
+                  <div class="detail-section-label">Decision Trace</div>
+                  <ol style="padding-left:1.2rem; margin-top:0.3rem;">
+                    {% for step in entry.reasoning_chain %}
+                      <li style="font-size:0.83rem; color:#374151; line-height:1.5; padding:0.2rem 0;">{{ step }}</li>
+                    {% endfor %}
+                  </ol>
+                </div>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty">No triage decisions recorded yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function toggleDetail(id, row) {
+      var detail = document.getElementById(id);
+      var isOpen = detail.classList.contains('visible');
+      // Close all open rows
+      document.querySelectorAll('.detail-row.visible').forEach(function(el) {
+        el.classList.remove('visible');
+      });
+      document.querySelectorAll('tbody tr.active-row').forEach(function(el) {
+        el.classList.remove('active-row');
+      });
+      if (!isOpen) {
+        detail.classList.add('visible');
+        row.classList.add('active-row');
+      }
+    }
+  </script>
+</body>
+</html>
