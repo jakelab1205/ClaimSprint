@@ -1,0 +1,18 @@
+[Unit]
+Description=ClaimSprint Gunicorn
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/srv/claimsprint
+EnvironmentFile=/srv/claimsprint/.env
+ExecStart=/srv/claimsprint/venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:8000 \
+    claimsprint.wsgi:application
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
