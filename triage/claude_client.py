@@ -211,8 +211,14 @@ def process_fnol(text: str) -> dict:
     try:
         response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=2048,
-            system=system_prompt,
+            max_tokens=1024,
+            system=[
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
             messages=[
                 {
                     "role": "user",
@@ -248,3 +254,49 @@ def process_fnol(text: str) -> dict:
             "error": True,
             "message": f"An error occurred: {exc}",
         }
+
+
+def stream_fnol(text: str):
+    """Generator: yields raw token strings during streaming, then the final result dict."""
+    if not text or not text.strip():
+        yield {"error": True, "message": "No FNOL text provided. Please paste the claim notification and try again."}
+        return
+
+    handlers = _get_handlers()
+    if not handlers:
+        yield {"error": True, "message": "No active handlers found in the staff directory. Please contact an administrator."}
+        return
+
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    system_prompt = _build_system_prompt(handlers)
+
+    raw = ""
+    try:
+        with client.messages.stream(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
+            messages=[{"role": "user", "content": f"Triage this FNOL:\n\n{text.strip()}"}],
+        ) as stream:
+            for chunk in stream.text_stream:
+                raw += chunk
+                yield chunk
+
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1]
+            raw = raw.rsplit("```", 1)[0].strip()
+        result = json.loads(raw)
+        if result.get("error"):
+            yield result
+            return
+        missing = _REQUIRED_KEYS - result.keys()
+        if missing:
+            yield {"error": True, "message": f"AI response was incomplete (missing: {', '.join(sorted(missing))}). Please try again.", "raw": raw}
+            return
+        validated = _validate_handler(result, handlers)
+        _append_to_log(validated)
+        yield validated
+    except json.JSONDecodeError:
+        yield {"error": True, "message": "The AI returned an unexpected response. Please try again.", "raw": raw}
+    except Exception as exc:
+        yield {"error": True, "message": f"An error occurred: {exc}"}

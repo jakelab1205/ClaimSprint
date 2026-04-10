@@ -1,10 +1,12 @@
 import json
 import os
 
+from django.http import StreamingHttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 
-from .claude_client import _LOG_FILE, process_fnol
+from .claude_client import _LOG_FILE, process_fnol, stream_fnol
 from .forms import SeverityThresholdFormSet
 from .models import Handler, SeverityThreshold
 
@@ -17,6 +19,27 @@ def index(request):
     fnol_text = request.POST.get("fnol_text", "")
     result = process_fnol(fnol_text)
     return render(request, "triage/result.html", {"result": result, "fnol_text": fnol_text})
+
+
+@require_http_methods(["POST"])
+def triage_stream(request):
+    fnol_text = request.POST.get("fnol_text", "")
+
+    def event_stream():
+        for item in stream_fnol(fnol_text):
+            if isinstance(item, str):
+                yield f"data: {json.dumps({'type': 'token', 'text': item})}\n\n"
+            elif isinstance(item, dict):
+                if item.get("error"):
+                    yield f"data: {json.dumps({'type': 'error', 'message': item['message']})}\n\n"
+                else:
+                    html = render_to_string("triage/result.html", {"result": item, "fnol_text": fnol_text}, request=request)
+                    yield f"data: {json.dumps({'type': 'done', 'html': html})}\n\n"
+
+    response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
 
 
 @require_http_methods(["GET"])
