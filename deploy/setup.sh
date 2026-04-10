@@ -3,6 +3,7 @@
 # Run as the ubuntu user: bash deploy/setup.sh
 set -euo pipefail
 
+REPO_URL=https://github.com/jakelab1205/ClaimSprint.git
 REPO_DIR=/srv/claimsprint
 DOMAIN=team-solo-1-workshop.i2go.io
 
@@ -16,19 +17,12 @@ fi
 
 # -- System packages --------------------------------------------------------
 sudo apt-get update -qq
-sudo apt-get install -y python3.12 python3.12-venv nginx certbot python3-certbot-nginx
+sudo apt-get install -y python3.12 python3.12-venv nginx certbot python3-certbot-nginx git
 
-# -- App directory ----------------------------------------------------------
-# If this script is run from inside the repo (e.g. after scp), move the repo
-# to /srv/claimsprint. Otherwise clone it.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_SRC="$(dirname "$SCRIPT_DIR")"
-
-if [[ "$APP_SRC" != "$REPO_DIR" ]]; then
-    sudo mkdir -p "$REPO_DIR"
-    sudo chown ubuntu:ubuntu "$REPO_DIR"
-    cp -r "$APP_SRC/." "$REPO_DIR/"
-fi
+# -- Clone repo -------------------------------------------------------------
+sudo mkdir -p "$REPO_DIR"
+sudo chown ubuntu:ubuntu "$REPO_DIR"
+git clone "$REPO_URL" "$REPO_DIR"
 
 # -- Environment file -------------------------------------------------------
 echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" > "$REPO_DIR/.env"
