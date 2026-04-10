@@ -1,5 +1,5 @@
 {% extends "triage/base.html" %}
-{% block title %}ClaimSprint — Settings{% endblock %}
+{% block title %}ClaimSprint — Handlers{% endblock %}
 
 {% block styles %}
     .wrapper { max-width: 720px; margin: 0 auto; padding: 2rem; }
@@ -14,7 +14,7 @@
     .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
     .field-block { display: flex; flex-direction: column; }
     .field-block label { font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; }
-    .field-block input, .field-block textarea {
+    .field-block input[type="text"], .field-block textarea {
       padding: 0.5rem 0.75rem;
       border: 1px solid #d0d5dd;
       border-radius: 6px;
@@ -28,13 +28,18 @@
       box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
     }
     .field-block textarea { resize: vertical; line-height: 1.5; }
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+    .checkbox-row label { font-size: 0.85rem; font-weight: 600; color: #374151; margin: 0; }
     .field-hint { font-size: 0.73rem; color: #9ca3af; margin-top: 0.3rem; }
     .field-error { font-size: 0.78rem; color: #991b1b; margin-top: 0.3rem; }
 
+    .delete-row { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.5rem; }
+    .delete-row label { font-size: 0.8rem; color: #6b7280; }
+
+    .new-card { border: 2px dashed #d0d5dd; background: #fafafa; }
+
     .form-error { background: #fff1f2; border: 1px solid #fecaca; border-left: 4px solid #f87171; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #991b1b; margin-bottom: 1rem; }
     .success-banner { background: #d1fae5; border: 1px solid #6ee7b7; border-left: 4px solid #10b981; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.85rem; font-weight: 600; color: #065f46; margin-bottom: 1rem; }
-
-    .updated-at { font-size: 0.73rem; color: #9ca3af; margin-top: 0.75rem; text-align: right; }
 
     .save-btn {
       margin-top: 0.5rem;
@@ -61,17 +66,17 @@
       <a class="back" style="margin-bottom:0;" href="/">&#8592; Back to Triage</a>
     </div>
     <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
-      <a href="/settings/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#1d4ed8; color:#fff; text-decoration:none;">Severity Thresholds</a>
+      <a href="/settings/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f3f4f6; color:#374151; text-decoration:none;">Severity Thresholds</a>
       <a href="/settings/claim-types/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f3f4f6; color:#374151; text-decoration:none;">Claim Types</a>
-      <a href="/settings/handlers/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f3f4f6; color:#374151; text-decoration:none;">Handlers</a>
+      <a href="/settings/handlers/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#1d4ed8; color:#fff; text-decoration:none;">Handlers</a>
     </div>
-    <h1>Severity Thresholds</h1>
+    <h1>Handlers</h1>
     <p style="font-size:0.9rem; color:#6b7280; margin-bottom:1.5rem;">
-      These thresholds determine how the AI classifies claim severity. Changes take effect on the next FNOL submission.
+      Active handlers are included in the AI system prompt as the assignable pool. Inactive handlers are excluded from triage but their records are retained.
     </p>
 
     {% if saved %}
-      <div class="success-banner">Thresholds saved.</div>
+      <div class="success-banner">Handlers saved.</div>
     {% endif %}
 
     {% if formset.non_form_errors %}
@@ -83,9 +88,11 @@
       {{ formset.management_form }}
 
       {% for form in formset %}
-        <div class="card">
-          <div class="card-eyebrow">Claim type</div>
-          <div class="card-heading">{{ form.instance.get_claim_type_display }}</div>
+        <div class="card{% if not form.instance.pk %} new-card{% endif %}">
+          <div class="card-eyebrow">{% if form.instance.pk %}Handler{% else %}New handler{% endif %}</div>
+          {% if form.instance.pk %}
+            <div class="card-heading">{{ form.instance.name }} &mdash; {{ form.instance.region }}</div>
+          {% endif %}
 
           {{ form.id }}
 
@@ -95,28 +102,41 @@
 
           <div class="field-grid">
             <div class="field-block">
-              {{ form.low_max.label_tag }}
-              {{ form.low_max }}
-              <span class="field-hint">Low severity: below this value</span>
-              {% if form.low_max.errors %}<div class="field-error">{{ form.low_max.errors }}</div>{% endif %}
+              {{ form.name.label_tag }}
+              {{ form.name }}
+              {% if form.name.errors %}<div class="field-error">{{ form.name.errors }}</div>{% endif %}
             </div>
             <div class="field-block">
-              {{ form.medium_max.label_tag }}
-              {{ form.medium_max }}
-              <span class="field-hint">Medium severity: Low Max to this value. High = above this.</span>
-              {% if form.medium_max.errors %}<div class="field-error">{{ form.medium_max.errors }}</div>{% endif %}
+              {{ form.region.label_tag }}
+              {{ form.region }}
+              <span class="field-hint">e.g. EMEA, APAC, Americas, Global</span>
+              {% if form.region.errors %}<div class="field-error">{{ form.region.errors }}</div>{% endif %}
             </div>
           </div>
 
-          <div class="field-block">
-            {{ form.critical_description.label_tag }}
-            {{ form.critical_description }}
-            <span class="field-hint">Narrative definition of Critical severity for this claim type</span>
-            {% if form.critical_description.errors %}<div class="field-error">{{ form.critical_description.errors }}</div>{% endif %}
+          <div class="field-block" style="margin-bottom:1rem;">
+            {{ form.role.label_tag }}
+            {{ form.role }}
+            {% if form.role.errors %}<div class="field-error">{{ form.role.errors }}</div>{% endif %}
           </div>
 
-          {% if form.instance.updated_at %}
-            <div class="updated-at">Last updated: {{ form.instance.updated_at|date:"Y-m-d H:i" }} UTC</div>
+          <div class="field-block" style="margin-bottom:1rem;">
+            {{ form.speciality.label_tag }}
+            {{ form.speciality }}
+            <span class="field-hint">Used by the AI to match claim subtypes to this handler</span>
+            {% if form.speciality.errors %}<div class="field-error">{{ form.speciality.errors }}</div>{% endif %}
+          </div>
+
+          <div class="checkbox-row">
+            {{ form.active }}
+            <label for="{{ form.active.id_for_label }}">Active (include in triage pool)</label>
+          </div>
+
+          {% if form.instance.pk %}
+            <div class="delete-row">
+              {{ form.DELETE }}
+              <label for="{{ form.DELETE.id_for_label }}">Delete this handler</label>
+            </div>
           {% endif %}
         </div>
       {% endfor %}

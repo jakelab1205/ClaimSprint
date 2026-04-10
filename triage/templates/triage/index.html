@@ -1,71 +1,298 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimSprint — FNOL Triage</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+{% extends "triage/base.html" %}
+{% block title %}ClaimSprint — FNOL Triage{% endblock %}
+
+{% block styles %}
+    .index-wrap { display: flex; flex-direction: column; align-items: center; padding: 2rem; }
     .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); padding: 2.5rem; width: 100%; max-width: 720px; }
     h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: -0.5px; }
-    .subtitle { color: #555; font-size: 0.95rem; margin-bottom: 1.8rem; }
-    label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
-    textarea { width: 100%; padding: 0.8rem 1rem; border: 1px solid #d0d5dd; border-radius: 6px; font-family: "SF Mono", "Fira Code", monospace; font-size: 0.85rem; line-height: 1.6; resize: vertical; color: #1a1a2e; }
-    textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
-    button { margin-top: 1.2rem; width: 100%; padding: 0.85rem; background: #1d4ed8; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-    button:hover { background: #1e40af; }
+    .subtitle { color: #555; font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem; gap: 0; }
+    .tab-btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 600; border: none; background: none; cursor: pointer; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab-btn:hover { color: #1d4ed8; }
+    .tab-btn.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; }
+    textarea, input[type="text"], input[type="date"], input[type="time"], select {
+      width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #d0d5dd; border-radius: 6px;
+      font-family: inherit; font-size: 0.9rem; color: #1a1a2e; background: #fff;
+    }
+    textarea { font-family: "SF Mono", "Fira Code", monospace; font-size: 0.85rem; line-height: 1.6; resize: vertical; }
+    textarea:focus, input:focus, select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .field-group { margin-bottom: 1rem; }
+    .field-hint { font-size: 0.78rem; color: #888; margin-top: 0.3rem; }
+    .field-error { font-size: 0.82rem; color: #dc2626; margin-top: 0.3rem; }
+    .form-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.88rem; color: #b91c1c; margin-bottom: 1rem; }
+    .pdf-area { border: 2px dashed #d0d5dd; border-radius: 8px; padding: 2.5rem 1.5rem; text-align: center; }
+    .pdf-area input[type="file"] { display: block; margin: 0 auto; font-size: 0.9rem; }
+    .pdf-note { font-size: 0.82rem; color: #888; margin-top: 0.75rem; }
+    .pdf-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.88rem; color: #b91c1c; margin-bottom: 1rem; }
+    button[type="submit"] { margin-top: 1.2rem; width: 100%; padding: 0.85rem; background: #1d4ed8; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    button[type="submit"]:hover { background: #1e40af; }
     .hint { margin-top: 1rem; font-size: 0.8rem; color: #888; }
     .footer-link { margin-top: 1rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
     .footer-link:hover { text-decoration: underline; }
-    .spinner {
-      width: 44px; height: 44px;
-      border: 4px solid #e5e7eb;
-      border-top-color: #1d4ed8;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
+    .spinner { width: 44px; height: 44px; border: 4px solid #e5e7eb; border-top-color: #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>ClaimSprint</h1>
-    <p class="subtitle">Paste a First Notice of Loss below. The system will classify the claim, assess severity, and recommend a handler.</p>
-    <div id="form-body">
-      <form method="post" id="triage-form">
-        {% csrf_token %}
-        <label for="fnol_text">FNOL Text</label>
-        <textarea id="fnol_text" name="fnol_text" rows="18" placeholder="Paste the claim notification here..."></textarea>
-        <button type="submit" id="submitBtn" onclick="return submitForm(this);">Triage Claim</button>
-      </form>
-      <p class="hint">Processing takes 5-10 seconds. Do not refresh the page.</p>
-    </div>
-    <div id="loader" style="display:none; flex-direction:column; align-items:center; padding:3rem 0;">
-      <div class="spinner"></div>
-      <p id="loader-msg" style="margin-top:1.5rem; font-size:0.95rem; color:#374151;">Analysing claim&#8230;</p>
-    </div>
-  </div>
-  <div style="display:flex; gap:1.5rem; margin-top:0.75rem;">
-    <a class="footer-link" style="margin-top:0;" href="/staff/">Staff Directory</a>
-    <a class="footer-link" style="margin-top:0;" href="/history/">Audit Log &#8594;</a>
-    <a class="footer-link" style="margin-top:0;" href="/settings/">Settings</a>
-  </div>
+    .steps {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      flex: 1;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: calc(50% + 12px);
+      width: calc(100% - 24px);
+      height: 2px;
+      background: #e5e7eb;
+      transition: background 0.3s;
+    }
+    .step.done:not(:last-child)::after { background: #1d4ed8; }
+    .step-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #e5e7eb;
+      background: #fff;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .step.active .step-dot, .step.done .step-dot {
+      border-color: #1d4ed8;
+      background: #1d4ed8;
+    }
+    .step-label {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      font-weight: 500;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .step.active .step-label { color: #1d4ed8; font-weight: 600; }
+    .step.done .step-label  { color: #374151; }
+    #stream-header { display: none; margin-bottom: 0.75rem; }
+    #stream-header-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+    #stream-header-note {
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #1d4ed8;
+      flex-shrink: 0;
+      animation: pulse-dot 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+    #phase3-banner {
+      display: none;
+      width: 100%;
+      max-width: 720px;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+{% endblock %}
 
+{% block content %}
+  <div class="index-wrap">
+    <div class="card">
+      <h1>ClaimSprint</h1>
+      <p class="subtitle">Submit a First Notice of Loss. The system will classify the claim, assess severity, and recommend a handler.</p>
+
+      <div id="form-body">
+        <form method="post" id="triage-form" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="mode" id="mode-input" value="text">
+
+          <div class="tabs">
+            <button type="button" class="tab-btn" id="tab-text" onclick="switchTab('text')">Free Text</button>
+            <button type="button" class="tab-btn" id="tab-form" onclick="switchTab('form')">Structured Form</button>
+            <button type="button" class="tab-btn" id="tab-pdf" onclick="switchTab('pdf')">PDF Upload</button>
+          </div>
+
+          <!-- Free Text Panel -->
+          <div class="tab-panel" id="panel-text">
+            <label for="fnol_text">FNOL Text</label>
+            <textarea id="fnol_text" name="fnol_text" rows="16" placeholder="Paste the claim notification here..."></textarea>
+          </div>
+
+          <!-- Structured Form Panel -->
+          <div class="tab-panel" id="panel-form">
+            {% if fnol_form.non_field_errors %}
+              <div class="form-error">{{ fnol_form.non_field_errors.0 }}</div>
+            {% endif %}
+            <div class="field-row">
+              <div class="field-group">
+                <label for="{{ fnol_form.incident_date.id_for_label }}">{{ fnol_form.incident_date.label }}</label>
+                {{ fnol_form.incident_date }}
+                {% if fnol_form.incident_date.errors %}<p class="field-error">{{ fnol_form.incident_date.errors.0 }}</p>{% endif %}
+              </div>
+              <div class="field-group">
+                <label for="{{ fnol_form.incident_time.id_for_label }}">{{ fnol_form.incident_time.label }}</label>
+                {{ fnol_form.incident_time }}
+                {% if fnol_form.incident_time.errors %}<p class="field-error">{{ fnol_form.incident_time.errors.0 }}</p>{% endif %}
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="{{ fnol_form.claimant_name.id_for_label }}">{{ fnol_form.claimant_name.label }}</label>
+                {{ fnol_form.claimant_name }}
+                {% if fnol_form.claimant_name.errors %}<p class="field-error">{{ fnol_form.claimant_name.errors.0 }}</p>{% endif %}
+              </div>
+              <div class="field-group">
+                <label for="{{ fnol_form.policy_number.id_for_label }}">{{ fnol_form.policy_number.label }}</label>
+                {{ fnol_form.policy_number }}
+                {% if fnol_form.policy_number.errors %}<p class="field-error">{{ fnol_form.policy_number.errors.0 }}</p>{% endif %}
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="{{ fnol_form.loss_type.id_for_label }}">{{ fnol_form.loss_type.label }}</label>
+                {{ fnol_form.loss_type }}
+                {% if fnol_form.loss_type.errors %}<p class="field-error">{{ fnol_form.loss_type.errors.0 }}</p>{% endif %}
+              </div>
+              <div class="field-group">
+                <label for="{{ fnol_form.incident_location.id_for_label }}">{{ fnol_form.incident_location.label }}</label>
+                {{ fnol_form.incident_location }}
+                {% if fnol_form.incident_location.errors %}<p class="field-error">{{ fnol_form.incident_location.errors.0 }}</p>{% endif %}
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="{{ fnol_form.estimated_value.id_for_label }}">{{ fnol_form.estimated_value.label }}</label>
+              {{ fnol_form.estimated_value }}
+              {% if fnol_form.estimated_value.help_text %}<p class="field-hint">{{ fnol_form.estimated_value.help_text }}</p>{% endif %}
+              {% if fnol_form.estimated_value.errors %}<p class="field-error">{{ fnol_form.estimated_value.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="field-group">
+              <label for="{{ fnol_form.description.id_for_label }}">{{ fnol_form.description.label }}</label>
+              {{ fnol_form.description }}
+              {% if fnol_form.description.errors %}<p class="field-error">{{ fnol_form.description.errors.0 }}</p>{% endif %}
+            </div>
+          </div>
+
+          <!-- PDF Upload Panel -->
+          <div class="tab-panel" id="panel-pdf">
+            {% if pdf_error %}
+              <div class="pdf-error">{{ pdf_error }}</div>
+            {% endif %}
+            <div class="pdf-area">
+              <label for="pdf_file" style="font-weight:600; font-size:0.95rem; margin-bottom:0.75rem;">Upload a claim document (PDF)</label>
+              <input type="file" id="pdf_file" name="pdf_file" accept=".pdf">
+              <p class="pdf-note">Text-based PDFs only. Scanned images cannot be processed.</p>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" onclick="return submitForm();">Triage Claim</button>
+        </form>
+      </div>
+
+      <div id="loader" style="display:none; flex-direction:column; align-items:center; padding:3rem 0;">
+        <div class="steps">
+          <div class="step active" id="step-1">
+            <div class="step-dot"></div>
+            <span class="step-label">Analysing</span>
+          </div>
+          <div class="step" id="step-2">
+            <div class="step-dot"></div>
+            <span class="step-label">Preliminary<br>Summary</span>
+          </div>
+          <div class="step" id="step-3">
+            <div class="step-dot"></div>
+            <span class="step-label">Building<br>Report</span>
+          </div>
+        </div>
+        <div class="spinner"></div>
+        <p id="loader-msg" style="margin-top:1.5rem; font-size:0.95rem; color:#374151;">Analysing claim&#8230;</p>
+        <p class="hint">Processing takes 5-10 seconds. Do not refresh the page.</p>
+      </div>
+    </div>
+
+    <div id="stream-text" style="display:none; width:100%; max-width:720px; margin-top:0.75rem; padding:1rem 1.25rem; background:#fff; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.08); font-size:0.9rem; color:#374151; line-height:1.7;">
+      <div id="stream-header">
+        <div id="stream-header-title">Preliminary Assessment</div>
+        <div id="stream-header-note">
+          <span class="live-dot"></span>
+          <span id="stream-header-note-text">Full structured report is still generating&#8230;</span>
+        </div>
+      </div>
+      <div id="stream-body"></div>
+    </div>
+    <div id="phase3-banner">Full report generating &#8212; please stay on this page.</div>
+
+    <div style="display:flex; gap:1.5rem; margin-top:0.75rem;">
+      <a class="footer-link" style="margin-top:0;" href="/staff/">Staff Directory</a>
+      <a class="footer-link" style="margin-top:0;" href="/history/">Audit Log &#8594;</a>
+      <a class="footer-link" style="margin-top:0;" href="/settings/">Settings</a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
   <script>
-    function submitForm(btn) {
-      var text = document.getElementById('fnol_text').value.trim();
-      if (!text) return false;
+    function switchTab(mode) {
+      document.getElementById('mode-input').value = mode;
+      ['text', 'form', 'pdf'].forEach(function(m) {
+        document.getElementById('panel-' + m).classList.toggle('active', m === mode);
+        document.getElementById('tab-' + m).classList.toggle('active', m === mode);
+      });
+    }
+
+    function submitForm() {
+      var mode = document.getElementById('mode-input').value;
+
+      if (mode === 'text') {
+        var text = document.getElementById('fnol_text').value.trim();
+        if (!text) return false;
+      } else if (mode === 'pdf') {
+        var fileInput = document.getElementById('pdf_file');
+        if (!fileInput.files || !fileInput.files.length) {
+          alert('Please select a PDF file to upload.');
+          return false;
+        }
+      }
 
       document.getElementById('form-body').style.display = 'none';
       document.getElementById('loader').style.display = 'flex';
       var msgEl = document.getElementById('loader-msg');
-      var msgs = ['Analysing claim\u2026', 'Assessing severity\u2026', 'Selecting handler\u2026'];
-      var i = 0;
-      var interval = setInterval(function() {
-        i = (i + 1) % msgs.length;
-        msgEl.textContent = msgs[i];
-      }, 2500);
+      if (mode === 'pdf') msgEl.textContent = 'Extracting PDF text\u2026';
+
+      var streamEl = document.getElementById('stream-text');
+      var streamBodyEl = document.getElementById('stream-body');
+      var streamHeaderEl = document.getElementById('stream-header');
+      var noteTextEl = document.getElementById('stream-header-note-text');
+      var phase3BannerEl = document.getElementById('phase3-banner');
+      var step1 = document.getElementById('step-1');
+      var step2 = document.getElementById('step-2');
+      var step3 = document.getElementById('step-3');
+      var accumulated = '';
+      var jsonStarted = false;
+
+      function beforeUnloadHandler(e) { e.preventDefault(); e.returnValue = ''; }
+      window.addEventListener('beforeunload', beforeUnloadHandler);
 
       var formData = new FormData(document.getElementById('triage-form'));
       fetch('/stream/', { method: 'POST', body: formData })
@@ -82,14 +309,52 @@
               parts.forEach(function(part) {
                 if (!part.startsWith('data: ')) return;
                 var evt = JSON.parse(part.slice(6));
-                if (evt.type === 'done') {
-                  clearInterval(interval);
+                if (evt.type === 'token') {
+                  if (!jsonStarted) {
+                    msgEl.textContent = 'Analysing claim\u2026';
+                    accumulated += evt.text;
+                    if (accumulated.indexOf('{') !== -1) {
+                      jsonStarted = true;
+                      var summaryText = accumulated.slice(0, accumulated.indexOf('{')).trim();
+                      if (summaryText) {
+                        streamEl.style.display = 'block';
+                        streamHeaderEl.style.display = 'block';
+                        streamBodyEl.textContent = summaryText;
+                      }
+                      msgEl.textContent = 'Building result\u2026';
+                      step2.classList.remove('active');
+                      step2.classList.add('done');
+                      step3.classList.add('active');
+                      phase3BannerEl.style.display = 'block';
+                      noteTextEl.textContent = 'Full report incoming\u2026';
+                    } else {
+                      streamEl.style.display = 'block';
+                      streamHeaderEl.style.display = 'block';
+                      streamBodyEl.textContent = accumulated;
+                      if (!step2.classList.contains('active') && !step2.classList.contains('done')) {
+                        step1.classList.remove('active');
+                        step1.classList.add('done');
+                        step2.classList.add('active');
+                      }
+                    }
+                  }
+                } else if (evt.type === 'done') {
+                  window.removeEventListener('beforeunload', beforeUnloadHandler);
                   document.open();
                   document.write(evt.html);
                   document.close();
                 } else if (evt.type === 'error') {
-                  clearInterval(interval);
-                  msgEl.textContent = evt.message;
+                  window.removeEventListener('beforeunload', beforeUnloadHandler);
+                  step1.classList.remove('done'); step1.classList.add('active');
+                  step2.classList.remove('active', 'done');
+                  step3.classList.remove('active', 'done');
+                  phase3BannerEl.style.display = 'none';
+                  streamEl.style.display = 'none';
+                  document.getElementById('loader').style.display = 'none';
+                  document.getElementById('form-body').style.display = 'block';
+                  msgEl.textContent = 'Analysing claim\u2026';
+                  var errMsg = evt.message;
+                  setTimeout(function() { alert(errMsg); }, 0);
                 }
               });
               read();
@@ -98,12 +363,13 @@
           read();
         })
         .catch(function() {
-          clearInterval(interval);
+          window.removeEventListener('beforeunload', beforeUnloadHandler);
           msgEl.textContent = 'Connection error. Please try again.';
         });
 
       return false;
     }
+
+    switchTab('{{ active_tab|default:"text" }}');
   </script>
-</body>
-</html>
+{% endblock %}

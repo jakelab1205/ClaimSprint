@@ -22,6 +22,19 @@ class Handler(models.Model):
         return [t.strip() for t in self.expertise_tags.split(",") if t.strip()]
 
 
+class ClaimType(models.Model):
+    slug = models.CharField(max_length=50, unique=True)
+    label = models.CharField(max_length=100)
+    active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "slug"]
+
+    def __str__(self):
+        return self.label
+
+
 class SeverityThreshold(models.Model):
     CLAIM_TYPE_CHOICES = [
         ("hull", "Hull"),

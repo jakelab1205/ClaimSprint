@@ -1,22 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimSprint — Audit Log</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; padding: 2rem; }
-    .wrapper { max-width: 960px; margin: 0 auto; }
+{% extends "triage/base.html" %}
+{% block title %}ClaimSprint — Audit Log{% endblock %}
+
+{% block styles %}
+    .wrapper { max-width: 960px; margin: 0 auto; padding: 2rem; }
     h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
     .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
     .back:hover { text-decoration: underline; }
 
-    .severity-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 700; font-size: 0.78rem; white-space: nowrap; }
-    .severity-low    { background: #d1fae5; color: #065f46; }
-    .severity-medium { background: #fef3c7; color: #92400e; }
-    .severity-high   { background: #fee2e2; color: #991b1b; }
-    .severity-critical { background: #7f1d1d; color: #fff; }
+    .severity-badge { padding: 0.2rem 0.6rem; font-size: 0.78rem; white-space: nowrap; }
 
     .table-wrap {
       background: #fff;
@@ -108,14 +99,14 @@
     }
 
     @media (max-width: 640px) {
-      body { padding: 1rem; }
+      .wrapper { padding: 1rem; }
       thead th:nth-child(4), tbody td:nth-child(4),
       thead th:nth-child(6), tbody td:nth-child(6) { display: none; }
       .detail-grid { grid-template-columns: 1fr; }
     }
-  </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
   <div class="wrapper">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
       <h1>Audit Log</h1>
@@ -141,7 +132,7 @@
         <tbody>
           {% for entry in entries %}
           <tr onclick="toggleDetail('detail-{{ forloop.counter }}', this)">
-            <td class="timestamp">{{ entry.timestamp|slice:":16"|cut:"T" }}</td>
+            <td class="timestamp">{{ entry.timestamp|date:"Y-m-d H:i" }}</td>
             <td>
               <div class="claim-type">{{ entry.claim_type|title }}</div>
               <div class="claim-subtype">{{ entry.claim_subtype }}</div>
@@ -234,7 +225,9 @@
       {% endif %}
     </div>
   </div>
+{% endblock %}
 
+{% block scripts %}
   <script>
     function toggleDetail(id, row) {
       var detail = document.getElementById(id);
@@ -252,5 +245,4 @@
       }
     }
   </script>
-</body>
-</html>
+{% endblock %}

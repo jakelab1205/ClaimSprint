@@ -4,75 +4,102 @@ from datetime import datetime, timezone
 
 import anthropic
 
-_SYSTEM_PROMPT_BASE = """You are a senior insurance claims triage specialist at Nacora, an international freight insurance broker. Your job is to read a First Notice of Loss (FNOL) and return a structured triage card. The FNOL text may be written in any language. You must always respond in English using the JSON schema below — never translate the schema keys or enum values.
 
-Before triaging, verify the input is a recognizable insurance claim. A valid FNOL must contain at least two of: a description of an incident or loss, reference to insured goods or property, a policy number or insured party name, an estimated claim value or affected party. If the input does not meet this threshold — e.g. it is a greeting, a test string, a question, or unrelated text — return this exact JSON and nothing else:
+def _extract_json(raw: str) -> str:
+    """Strip markdown fences and any surrounding prose, returning the JSON object."""
+    s = raw
+    if s.startswith("```"):
+        s = s.split("\n", 1)[1]
+        s = s.rsplit("```", 1)[0].strip()
+    start = s.find("{")
+    end = s.rfind("}") + 1
+    if start != -1 and end > start:
+        return s[start:end]
+    return s
 
-{"error": true, "message": "Input does not appear to be a First Notice of Loss. Please paste the actual claim notification text."}
 
-You must return ONLY a valid JSON object — no markdown, no explanation, no code fences. The JSON must exactly match this schema:
+def _build_claim_type_list() -> str:
+    from .models import ClaimType
+    slugs = list(ClaimType.objects.filter(active=True).order_by("sort_order", "slug").values_list("slug", flat=True))
+    return ", ".join(s.replace("_", " ") for s in slugs)
 
-{
-  "claim_type": "<string: one of marine cargo, liability, property, hull, other>",
-  "claim_subtype": "<string: specific subtype, e.g. refrigerated cargo loss, third-party bodily injury>",
 
-  "severity": "<string: one of Low, Medium, High, Critical>",
-  "severity_factors": ["<factor 1>", "<factor 2>", "<factor 3>"],
-
-  "recommended_action": "<string: one of assign_to_handler, assign_to_handler_urgent, escalate_to_senior, request_documentation, reject>",
-  "action_reasoning": ["<step 1>", "<step 2>", "<step 3>"],
-
-  "recommended_handler": {
-    "name": "<string>",
-    "role": "<string>",
-    "region": "<string>",
-    "speciality": "<string>",
-    "reason": "<string: one sentence explaining why this handler was chosen>"
-  },
-
-  "coverage_flags": ["<short label 1>", "<short label 2>"],
-
-  "confidence_score": 0.85,
-  "reasoning_chain": [
-    "<step 1: FNOL identification and claim classification>",
-    "<step 2: loss quantum and exposure assessment>",
-    "<step 3: severity determination with specific facts>",
-    "<step 4: region and handler selection logic>",
-    "<step 5: coverage flag rationale>"
-  ],
-  "risk_flag_explanations": [
-    {
-      "flag": "<short label matching the entry in coverage_flags>",
-      "must_verify": ["<specific document or check 1>", "<specific document or check 2>"],
-      "risk_if_unverified": "<one sentence: consequence if this is not verified before settlement>"
-    }
-  ]
-}
-
-confidence_score must be a float between 0.0 and 1.0. Score reflects how complete and unambiguous the FNOL is:
-- 0.85–1.0: FNOL is detailed, contains policy reference, loss quantum, and supporting evidence. Classification is unambiguous.
-- 0.65–0.84: FNOL is reasonably complete but missing one element (e.g. no policy number, or claim value estimated). Classification is clear.
-- 0.45–0.64: FNOL is sparse, ambiguous, or covers multiple claim types. Reasonable inference required.
-- Below 0.45: FNOL is critically incomplete. Key facts are missing. Handler should treat result as provisional.
-
-reasoning_chain must be an ordered list of 4 to 6 strings tracing the full decision path: FNOL classification → loss quantum → severity → handler selection → coverage flags. Each step must cite specific facts from the FNOL, not generic statements. This is distinct from action_reasoning (which is action-specific).
-
-risk_flag_explanations must be an array with one object per entry in coverage_flags. If coverage_flags is empty, return an empty array. Each object has three fields:
-- flag: the exact short label from coverage_flags
-- must_verify: an array of 2 to 4 short strings, each naming a specific document, record, or check the handler must obtain before proceeding (e.g. "Pre-shipment temperature log from shipper", "Reefer set-point records from carrier")
-- risk_if_unverified: exactly one sentence stating the consequence if this check is skipped (e.g. "Insurer may deny coverage on inherent vice grounds, leaving Nacora exposed to E&O liability.")
-
-Before assigning a handler, assess documentation completeness. A complete FNOL should contain:
-- A policy number or reference
-- Identity of the insured party or shipper
-- An estimated claim value or loss quantum
-- Supporting evidence referenced (bill of lading, survey report, photos, temperature log, etc.)
-
-If two or more of these are absent, set recommended_action to request_documentation and set action_reasoning to an array listing exactly which documents are missing and why each is required before the claim can be assessed.
-
-Severity guidelines — apply the set matching the claim_type:
-
-"""
+def _build_base_prompt() -> str:
+    claim_types = _build_claim_type_list()
+    return (
+        "You are a senior insurance claims triage specialist at Nacora, an international freight insurance broker."
+        " Your job is to read a First Notice of Loss (FNOL) and return a structured triage card."
+        " The FNOL text may be written in any language."
+        " You must always respond in English using the JSON schema below — never translate the schema keys or enum values.\n\n"
+        "Before triaging, verify the input is a recognizable insurance claim."
+        " A valid FNOL must contain at least two of: a description of an incident or loss,"
+        " reference to insured goods or property, a policy number or insured party name,"
+        " an estimated claim value or affected party."
+        " If the input does not meet this threshold — e.g. it is a greeting, a test string, a question,"
+        ' or unrelated text — return this exact JSON and nothing else:\n\n'
+        '{"error": true, "message": "Input does not appear to be a First Notice of Loss. Please paste the actual claim notification text."}\n\n'
+        "First write a triage summary: 2-3 plain-English sentences covering the claim type, estimated severity,"
+        " and intended handler direction. Do not use curly braces or JSON syntax in this summary."
+        " Every sentence must be complete and end with a full stop before you begin the JSON."
+        " Then, on a new line, output the JSON object — no markdown, no code fences."
+        " The JSON must exactly match this schema:\n\n"
+        "{\n"
+        f'  "claim_type": "<string: one of {claim_types}>",\n'
+        '  "claim_subtype": "<string: specific subtype, e.g. refrigerated cargo loss, third-party bodily injury>",\n\n'
+        '  "severity": "<string: one of Low, Medium, High, Critical>",\n'
+        '  "severity_factors": ["<factor 1>", "<factor 2>", "<factor 3>"],\n\n'
+        '  "recommended_action": "<string: one of assign_to_handler, assign_to_handler_urgent, escalate_to_senior, request_documentation, reject>",\n'
+        '  "action_reasoning": ["<step 1>", "<step 2>", "<step 3>"],\n\n'
+        '  "recommended_handler": {\n'
+        '    "name": "<string>",\n'
+        '    "role": "<string>",\n'
+        '    "region": "<string>",\n'
+        '    "speciality": "<string>",\n'
+        '    "reason": "<string: one sentence explaining why this handler was chosen>"\n'
+        "  },\n\n"
+        '  "coverage_flags": ["<short label 1>", "<short label 2>"],\n\n'
+        '  "confidence_score": 0.85,\n'
+        '  "reasoning_chain": [\n'
+        '    "<step 1: FNOL identification and claim classification>",\n'
+        '    "<step 2: loss quantum and exposure assessment>",\n'
+        '    "<step 3: severity determination with specific facts>",\n'
+        '    "<step 4: region and handler selection logic>",\n'
+        '    "<step 5: coverage flag rationale>"\n'
+        "  ],\n"
+        '  "risk_flag_explanations": [\n'
+        "    {\n"
+        '      "flag": "<short label matching the entry in coverage_flags>",\n'
+        '      "must_verify": ["<specific document or check 1>", "<specific document or check 2>"],\n'
+        '      "risk_if_unverified": "<one sentence: consequence if this is not verified before settlement>"\n'
+        "    }\n"
+        "  ]\n"
+        "}\n\n"
+        "confidence_score must be a float between 0.0 and 1.0. Score reflects how complete and unambiguous the FNOL is:\n"
+        "- 0.85\u20131.0: FNOL is detailed, contains policy reference, loss quantum, and supporting evidence. Classification is unambiguous.\n"
+        "- 0.65\u20130.84: FNOL is reasonably complete but missing one element (e.g. no policy number, or claim value estimated). Classification is clear.\n"
+        "- 0.45\u20130.64: FNOL is sparse, ambiguous, or covers multiple claim types. Reasonable inference required.\n"
+        "- Below 0.45: FNOL is critically incomplete. Key facts are missing. Handler should treat result as provisional.\n\n"
+        "reasoning_chain must be an ordered list of 4 to 6 strings tracing the full decision path:"
+        " FNOL classification \u2192 loss quantum \u2192 severity \u2192 handler selection \u2192 coverage flags."
+        " Each step must cite specific facts from the FNOL, not generic statements."
+        " This is distinct from action_reasoning (which is action-specific).\n\n"
+        "risk_flag_explanations must be an array with one object per entry in coverage_flags."
+        " If coverage_flags is empty, return an empty array. Each object has three fields:\n"
+        "- flag: the exact short label from coverage_flags\n"
+        '- must_verify: an array of 2 to 4 short strings, each naming a specific document, record,'
+        ' or check the handler must obtain before proceeding'
+        ' (e.g. "Pre-shipment temperature log from shipper", "Reefer set-point records from carrier")\n'
+        "- risk_if_unverified: exactly one sentence stating the consequence if this check is skipped"
+        ' (e.g. "Insurer may deny coverage on inherent vice grounds, leaving Nacora exposed to E&O liability.")\n\n'
+        "Before assigning a handler, assess documentation completeness. A complete FNOL should contain:\n"
+        "- A policy number or reference\n"
+        "- Identity of the insured party or shipper\n"
+        "- An estimated claim value or loss quantum\n"
+        "- Supporting evidence referenced (bill of lading, survey report, photos, temperature log, etc.)\n\n"
+        "If two or more of these are absent, set recommended_action to request_documentation and set action_reasoning"
+        " to an array listing exactly which documents are missing and why each is required before the claim can be assessed.\n\n"
+        "Severity guidelines \u2014 apply the set matching the claim_type:\n\n"
+    )
 
 _SYSTEM_PROMPT_HANDLER_INTRO = (
     "You must select the recommended_handler from this exact pool"
@@ -122,7 +149,7 @@ def _build_severity_guidelines() -> str:
 
 def _build_system_prompt(handlers: list) -> str:
     return (
-        _SYSTEM_PROMPT_BASE
+        _build_base_prompt()
         + _build_severity_guidelines()
         + "\n"
         + _SYSTEM_PROMPT_HANDLER_INTRO
@@ -211,7 +238,8 @@ def process_fnol(text: str) -> dict:
     try:
         response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1024,
+            max_tokens=4096,
+            timeout=30,
             system=[
                 {
                     "type": "text",
@@ -227,10 +255,7 @@ def process_fnol(text: str) -> dict:
             ],
         )
         raw = response.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("\n", 1)[1]
-            raw = raw.rsplit("```", 1)[0].strip()
-        result = json.loads(raw)
+        result = json.loads(_extract_json(raw))
         if result.get("error"):
             return result
         missing = _REQUIRED_KEYS - result.keys()
@@ -274,7 +299,8 @@ def stream_fnol(text: str):
     try:
         with client.messages.stream(
             model="claude-sonnet-4-6",
-            max_tokens=1024,
+            max_tokens=4096,
+            timeout=30,
             system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": f"Triage this FNOL:\n\n{text.strip()}"}],
         ) as stream:
@@ -282,10 +308,7 @@ def stream_fnol(text: str):
                 raw += chunk
                 yield chunk
 
-        if raw.startswith("```"):
-            raw = raw.split("\n", 1)[1]
-            raw = raw.rsplit("```", 1)[0].strip()
-        result = json.loads(raw)
+        result = json.loads(_extract_json(raw))
         if result.get("error"):
             yield result
             return

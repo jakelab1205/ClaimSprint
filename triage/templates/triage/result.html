@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimSprint — Triage Result</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; padding: 2rem; }
-    .wrapper { max-width: 860px; margin: 0 auto; }
+{% extends "triage/base.html" %}
+{% block title %}ClaimSprint — Triage Result{% endblock %}
+
+{% block styles %}
+    .wrapper { max-width: 860px; margin: 0 auto; padding: 2rem; }
     h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
     .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
     .back:hover { text-decoration: underline; }
@@ -17,11 +12,7 @@
     .card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.5rem; }
 
     /* ── Severity badges ── */
-    .severity-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
-    .severity-low    { background: #d1fae5; color: #065f46; }
-    .severity-medium { background: #fef3c7; color: #92400e; }
-    .severity-high   { background: #fee2e2; color: #991b1b; }
-    .severity-critical { background: #7f1d1d; color: #fff; }
+    .severity-badge { padding: 0.25rem 0.75rem; font-size: 0.9rem; }
 
     /* ── Zone 1: Summary Strip ── */
     .summary-strip {
@@ -435,7 +426,7 @@
 
     /* ── Responsive ── */
     @media (max-width: 600px) {
-      body { padding: 1rem; }
+      .wrapper { padding: 1rem; }
       .summary-strip { grid-template-columns: 1fr; }
       .strip-col + .strip-col { border-left: none; border-top: 1px solid #e5e7eb; }
       .strip-col--action-alert { border-left: none !important; border-top: 2px solid #fbbf24 !important; }
@@ -444,9 +435,9 @@
       .detail-panel { width: 100%; }
       .modal { max-height: 92vh; }
     }
-  </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
   <div class="wrapper">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
       <a class="back" style="margin-bottom:0;" href="/">&#8592; Triage another claim</a>
@@ -541,7 +532,7 @@
       {% endif %}
 
       <!-- Verify AI reasoning button -->
-      {% if result.confidence_score is not None or result.reasoning_chain or result.risk_flag_explanation %}
+      {% if result.confidence_score is not None or result.reasoning_chain or result.risk_flag_explanations %}
       <button class="verify-btn" onclick="openReasoningModal()">Verify AI reasoning</button>
       {% endif %}
 
@@ -650,7 +641,9 @@
       </div>
     </div>
   </div>
+{% endblock %}
 
+{% block scripts %}
   <script>
     function openPanel(title, srcId) {
       document.getElementById('panel-title').textContent = title;
@@ -678,5 +671,4 @@
       }
     });
   </script>
-</body>
-</html>
+{% endblock %}
