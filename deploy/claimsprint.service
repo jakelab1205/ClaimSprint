@@ -12,6 +12,7 @@ Environment=DJANGO_ALLOWED_HOSTS=team-solo-1-workshop.i2go.io
 ExecStart=/srv/claimsprint/venv/bin/gunicorn \
     --workers 2 \
     --bind 127.0.0.1:8000 \
+    --timeout 120 \
     claimsprint.wsgi:application
 Restart=always
 RestartSec=5
