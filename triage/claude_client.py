@@ -300,7 +300,7 @@ def stream_fnol(text: str):
         with client.messages.stream(
             model="claude-sonnet-4-6",
             max_tokens=4096,
-            timeout=30,
+            timeout=120,
             system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": f"Triage this FNOL:\n\n{text.strip()}"}],
         ) as stream:

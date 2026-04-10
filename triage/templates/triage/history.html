@@ -90,6 +90,10 @@
       margin-top: 0.4rem;
     }
 
+    .expand-chevron { font-size: 0.9rem; color: #9ca3af; transition: transform 0.15s ease; display: inline-block; }
+    tr.active-row .expand-chevron { transform: rotate(90deg); }
+    tr.active-row { background: #f9fafb; }
+
     /* Empty state */
     .empty {
       text-align: center;
@@ -127,6 +131,7 @@
             <th>Action</th>
             <th>Handler</th>
             <th>Confidence</th>
+            <th style="width:1.5rem;"></th>
           </tr>
         </thead>
         <tbody>
@@ -160,11 +165,12 @@
               <div class="handler-region">{{ entry.recommended_handler.region }}</div>
             </td>
             <td class="timestamp">
-              {% if entry.confidence_score is not None %}{{ entry.confidence_score|floatformat:2 }}{% else %}&mdash;{% endif %}
+              {% if entry.confidence_score is not None %}<span style="{% if entry.confidence_score >= 0.75 %}color:#059669{% elif entry.confidence_score >= 0.50 %}color:#d97706{% else %}color:#dc2626{% endif %}">{% widthratio entry.confidence_score 1 100 %}%</span>{% else %}&mdash;{% endif %}
             </td>
+            <td><span class="expand-chevron">&#8250;</span></td>
           </tr>
           <tr class="detail-row" id="detail-{{ forloop.counter }}">
-            <td colspan="6">
+            <td colspan="7">
               <div class="detail-grid">
                 <div>
                   <div class="detail-section-label">Severity Factors</div>

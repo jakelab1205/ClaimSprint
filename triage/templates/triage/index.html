@@ -17,7 +17,7 @@
       width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #d0d5dd; border-radius: 6px;
       font-family: inherit; font-size: 0.9rem; color: #1a1a2e; background: #fff;
     }
-    textarea { font-family: "SF Mono", "Fira Code", monospace; font-size: 0.85rem; line-height: 1.6; resize: vertical; }
+    textarea { font-size: 0.85rem; line-height: 1.6; resize: vertical; }
     textarea:focus, input:focus, select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
     .field-group { margin-bottom: 1rem; }
@@ -25,8 +25,10 @@
     .field-error { font-size: 0.82rem; color: #dc2626; margin-top: 0.3rem; }
     .form-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.88rem; color: #b91c1c; margin-bottom: 1rem; }
     .pdf-area { border: 2px dashed #d0d5dd; border-radius: 8px; padding: 2.5rem 1.5rem; text-align: center; }
-    .pdf-area input[type="file"] { display: block; margin: 0 auto; font-size: 0.9rem; }
     .pdf-note { font-size: 0.82rem; color: #888; margin-top: 0.75rem; }
+    .pdf-choose-btn { border: 1px solid #d0d5dd; border-radius: 6px; padding: 0.5rem 1.25rem; background: #fff; font-size: 0.9rem; font-weight: 600; color: #374151; cursor: pointer; }
+    .pdf-choose-btn:hover { background: #f9fafb; }
+    .pdf-filename { font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem; }
     .pdf-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.88rem; color: #b91c1c; margin-bottom: 1rem; }
     button[type="submit"] { margin-top: 1.2rem; width: 100%; padding: 0.85rem; background: #1d4ed8; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
     button[type="submit"]:hover { background: #1e40af; }
@@ -71,6 +73,18 @@
     .step.active .step-dot, .step.done .step-dot {
       border-color: #1d4ed8;
       background: #1d4ed8;
+    }
+    .step.done .step-dot { position: relative; }
+    .step.done .step-dot::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 5px;
+      height: 9px;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: translate(-60%, -60%) rotate(45deg);
     }
     .step-label {
       font-size: 0.7rem;
@@ -129,13 +143,13 @@
           <input type="hidden" name="mode" id="mode-input" value="text">
 
           <div class="tabs">
-            <button type="button" class="tab-btn" id="tab-text" onclick="switchTab('text')">Free Text</button>
+            <button type="button" class="tab-btn active" id="tab-text" onclick="switchTab('text')">Free Text</button>
             <button type="button" class="tab-btn" id="tab-form" onclick="switchTab('form')">Structured Form</button>
             <button type="button" class="tab-btn" id="tab-pdf" onclick="switchTab('pdf')">PDF Upload</button>
           </div>
 
           <!-- Free Text Panel -->
-          <div class="tab-panel" id="panel-text">
+          <div class="tab-panel active" id="panel-text">
             <label for="fnol_text">FNOL Text</label>
             <textarea id="fnol_text" name="fnol_text" rows="16" placeholder="Paste the claim notification here..."></textarea>
           </div>
@@ -200,8 +214,10 @@
               <div class="pdf-error">{{ pdf_error }}</div>
             {% endif %}
             <div class="pdf-area">
-              <label for="pdf_file" style="font-weight:600; font-size:0.95rem; margin-bottom:0.75rem;">Upload a claim document (PDF)</label>
-              <input type="file" id="pdf_file" name="pdf_file" accept=".pdf">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" style="display:none;" onchange="document.getElementById('pdf-filename').textContent = this.files.length ? this.files[0].name : 'No file selected';">
+              <button type="button" class="pdf-choose-btn" onclick="document.getElementById('pdf_file').click();">Choose PDF file</button>
+              <div id="pdf-filename" class="pdf-filename">No file selected</div>
               <p class="pdf-note">Text-based PDFs only. Scanned images cannot be processed.</p>
             </div>
           </div>
@@ -242,12 +258,6 @@
       <div id="stream-body"></div>
     </div>
     <div id="phase3-banner">Full report generating &#8212; please stay on this page.</div>
-
-    <div style="display:flex; gap:1.5rem; margin-top:0.75rem;">
-      <a class="footer-link" style="margin-top:0;" href="/staff/">Staff Directory</a>
-      <a class="footer-link" style="margin-top:0;" href="/history/">Audit Log &#8594;</a>
-      <a class="footer-link" style="margin-top:0;" href="/settings/">Settings</a>
-    </div>
   </div>
 {% endblock %}
 
@@ -300,9 +310,24 @@
           var reader = resp.body.getReader();
           var decoder = new TextDecoder();
           var buf = '';
+          var terminalReceived = false;
           function read() {
             reader.read().then(function(chunk) {
-              if (chunk.done) return;
+              if (chunk.done) {
+                if (!terminalReceived) {
+                  window.removeEventListener('beforeunload', beforeUnloadHandler);
+                  step1.classList.remove('done'); step1.classList.add('active');
+                  step2.classList.remove('active', 'done');
+                  step3.classList.remove('active', 'done');
+                  phase3BannerEl.style.display = 'none';
+                  streamEl.style.display = 'none';
+                  document.getElementById('loader').style.display = 'none';
+                  document.getElementById('form-body').style.display = 'block';
+                  msgEl.textContent = 'Analysing claim\u2026';
+                  setTimeout(function() { alert('The connection closed before the report completed. Please try again.'); }, 0);
+                }
+                return;
+              }
               buf += decoder.decode(chunk.value, { stream: true });
               var parts = buf.split('\n\n');
               buf = parts.pop();
@@ -339,11 +364,13 @@
                     }
                   }
                 } else if (evt.type === 'done') {
+                  terminalReceived = true;
                   window.removeEventListener('beforeunload', beforeUnloadHandler);
                   document.open();
                   document.write(evt.html);
                   document.close();
                 } else if (evt.type === 'error') {
+                  terminalReceived = true;
                   window.removeEventListener('beforeunload', beforeUnloadHandler);
                   step1.classList.remove('done'); step1.classList.add('active');
                   step2.classList.remove('active', 'done');

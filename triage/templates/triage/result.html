@@ -2,7 +2,7 @@
 {% block title %}ClaimSprint — Triage Result{% endblock %}
 
 {% block styles %}
-    .wrapper { max-width: 860px; margin: 0 auto; padding: 2rem; }
+    .wrapper { max-width: 960px; margin: 0 auto; padding: 2rem; }
     h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
     .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
     .back:hover { text-decoration: underline; }
@@ -441,12 +441,13 @@
   <div class="wrapper">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
       <a class="back" style="margin-bottom:0;" href="/">&#8592; Triage another claim</a>
-      <div style="display:flex; gap:1.25rem;">
-        <a class="back" style="margin-bottom:0;" href="/staff/">Staff Directory</a>
-        <a class="back" style="margin-bottom:0;" href="/history/">Audit Log &#8594;</a>
-      </div>
     </div>
-    <h1>Triage Result</h1>
+    {% if result.error %}<h1>Triage Result</h1>{% else %}
+    <div style="margin-bottom: 1rem;">
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.3rem;">Triage Result</div>
+      <h1>{{ result.claim_type|title }}</h1>
+    </div>
+    {% endif %}
 
     <div class="ai-disclaimer">
       AI-assisted triage &mdash; requires human review before any claim decision
