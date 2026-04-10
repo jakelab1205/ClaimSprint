@@ -2,3 +2,4 @@ django==5.0.4
 anthropic>=0.40.0
 gunicorn
 pypdf>=4.0.0
+weasyprint>=62.0

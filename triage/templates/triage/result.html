@@ -3,51 +3,48 @@
 
 {% block styles %}
     .wrapper { max-width: 960px; margin: 0 auto; padding: 2rem; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
-    .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
-    .back:hover { text-decoration: underline; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.3px; }
 
     /* ── Shared card base ── */
-    .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
-    .card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.5rem; }
+    .card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); margin-bottom: 0.5rem; }
 
-    /* ── Severity badges ── */
-    .severity-badge { padding: 0.25rem 0.75rem; font-size: 0.9rem; }
+    /* ── Severity badges (larger in strip) ── */
+    .strip-severity-badge { display: inline-block; border-radius: 999px; font-weight: 700; font-size: 1rem; padding: 0.3rem 0.9rem; }
 
     /* ── Zone 1: Summary Strip ── */
     .summary-strip {
       display: grid;
       grid-template-columns: 2fr 1fr 2fr;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-card);
       margin-bottom: 1rem;
       overflow: hidden;
     }
 
     .strip-col { padding: 1.25rem 1.5rem; }
-    .strip-col + .strip-col { border-left: 1px solid #e5e7eb; }
+    .strip-col + .strip-col { border-left: 1px solid var(--color-border); }
 
     .strip-eyebrow {
       font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       margin-bottom: 0.35rem;
     }
 
-    .strip-claim-type { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
-    .strip-claim-sub { font-size: 0.85rem; color: #6b7280; margin-top: 0.2rem; }
+    .strip-claim-type { font-size: 1.2rem; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+    .strip-claim-sub { font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 0.2rem; }
 
     .strip-col--severity {
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
-    .strip-col--severity .severity-badge { font-size: 1rem; padding: 0.3rem 0.9rem; }
 
-    .strip-action-label { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.2rem; }
+    .strip-action-label { font-size: 1.1rem; font-weight: 700; color: var(--color-text); margin-bottom: 0.2rem; }
 
     .strip-col--action-alert { border-left-color: #fbbf24 !important; background: #fffbeb; }
     .strip-col--action-reject { border-left-color: #fca5a5 !important; background: #fff1f2; }
@@ -59,12 +56,13 @@
       padding: 0;
       font-size: 0.78rem;
       font-weight: 600;
-      color: #2563eb;
+      color: var(--color-primary);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 0.3rem;
       margin-top: 0.4rem;
+      font-family: inherit;
     }
     .see-reasoning-btn::before { content: "▶"; font-size: 0.55rem; }
     .see-reasoning-btn:hover { text-decoration: underline; }
@@ -78,21 +76,21 @@
     }
 
     .handler-card { padding: 1.25rem 1.5rem; }
-    .handler-name { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.6rem; }
-    .handler-meta { font-size: 0.85rem; color: #374151; line-height: 1.6; }
+    .handler-name { font-size: 1.05rem; font-weight: 700; color: var(--color-text); margin-bottom: 0.6rem; }
+    .handler-meta { font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.6; }
     .handler-field-label {
       font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       margin-right: 0.3rem;
     }
     .handler-reason-line {
       font-size: 0.82rem;
       font-style: italic;
-      color: #6b7280;
-      border-top: 1px solid #e5e7eb;
+      color: var(--color-text-muted);
+      border-top: 1px solid var(--color-border);
       padding-top: 0.6rem;
       margin-top: 0.6rem;
       line-height: 1.5;
@@ -104,11 +102,11 @@
       padding: 0.3rem 0;
       padding-left: 1.2rem;
       position: relative;
-      font-size: 0.88rem;
+      font-size: 0.875rem;
       line-height: 1.45;
-      color: #374151;
+      color: var(--color-text-secondary);
     }
-    .factors-list li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+    .factors-list li::before { content: "—"; position: absolute; left: 0; color: var(--color-text-muted); }
 
     /* ── Zone 3: Coverage Pills ── */
     .coverage-pills {
@@ -124,17 +122,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: #6b7280;
-    }
-    .coverage-pill {
-      display: inline-block;
-      background: #fef3c7;
-      border: 1px solid #fcd34d;
-      color: #92400e;
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 0.2rem 0.7rem;
-      border-radius: 999px;
+      color: var(--color-text-secondary);
     }
 
     /* ── Verify reasoning button ── */
@@ -143,30 +131,32 @@
       align-items: center;
       gap: 0.4rem;
       background: none;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
       padding: 0.5rem 0.9rem;
       font-size: 0.82rem;
       font-weight: 600;
-      color: #374151;
+      color: var(--color-text-secondary);
       cursor: pointer;
       margin-bottom: 0.75rem;
+      font-family: inherit;
       transition: border-color 0.12s, background 0.12s;
     }
-    .verify-btn:hover { border-color: #9ca3af; background: #f9fafb; }
-    .verify-btn::after { content: "▶"; font-size: 0.5rem; color: #9ca3af; }
+    .verify-btn:hover { border-color: var(--color-text-muted); background: #f8fafc; }
+    .verify-btn::after { content: "▶"; font-size: 0.5rem; color: var(--color-text-muted); }
 
     /* ── Zone 4: Collapsible FNOL ── */
     .fnol-details {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
     }
     .fnol-summary {
       font-size: 0.85rem;
       font-weight: 600;
-      color: #374151;
+      color: var(--color-text-secondary);
       padding: 0.85rem 1.5rem;
       cursor: pointer;
       user-select: none;
@@ -176,19 +166,19 @@
       gap: 0.5rem;
     }
     .fnol-summary::-webkit-details-marker { display: none; }
-    .fnol-summary::before { content: "▶"; font-size: 0.6rem; color: #9ca3af; transition: transform 0.15s ease; }
+    .fnol-summary::before { content: "▶"; font-size: 0.6rem; color: var(--color-text-muted); transition: transform 0.15s ease; }
     details[open] .fnol-summary::before { transform: rotate(90deg); }
     details .fnol-preview { margin: 0 1.5rem 1rem; }
 
     .fnol-preview {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
+      background: #f8fafc;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
       padding: 1rem 1.2rem;
       font-family: "SF Mono", "Fira Code", monospace;
       font-size: 0.8rem;
       line-height: 1.6;
-      color: #374151;
+      color: var(--color-text-secondary);
       white-space: pre-wrap;
       word-break: break-word;
       max-height: 200px;
@@ -196,8 +186,7 @@
     }
 
     /* ── Error ── */
-    .error-card { background: #fff1f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1.5rem 2rem; color: #991b1b; }
-    .ai-disclaimer { background: #fffbeb; border: 1px solid #fbbf24; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 600; color: #78350f; margin-bottom: 1rem; }
+    .error-card { background: #fff1f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 1.5rem 2rem; color: #991b1b; }
 
     /* ── Slide-in detail panel (action reasoning) ── */
     .detail-panel {
@@ -206,13 +195,14 @@
       top: 0;
       height: 100vh;
       width: 320px;
-      background: #fff;
-      box-shadow: -4px 0 24px rgba(0,0,0,0.13);
+      background: var(--color-surface);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.10);
       transform: translateX(100%);
       transition: transform 0.22s ease;
       z-index: 100;
       display: flex;
       flex-direction: column;
+      border-left: 1px solid var(--color-border);
     }
     body.panel-open .detail-panel { transform: translateX(0); }
 
@@ -220,7 +210,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.18);
+      background: rgba(15,23,42,0.18);
       z-index: 99;
     }
     body.panel-open .panel-backdrop { display: block; }
@@ -230,13 +220,13 @@
       align-items: center;
       justify-content: space-between;
       padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--color-border);
       flex-shrink: 0;
     }
     .detail-panel-title {
       font-size: 0.78rem;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--color-text);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
@@ -244,12 +234,12 @@
       background: none;
       border: none;
       font-size: 1.1rem;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       cursor: pointer;
       line-height: 1;
       padding: 0.1rem 0.3rem;
     }
-    .detail-panel-close:hover { color: #374151; }
+    .detail-panel-close:hover { color: var(--color-text-secondary); }
     .detail-panel-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
 
     .panel-list { list-style: none; padding: 0; }
@@ -257,18 +247,18 @@
       padding: 0.35rem 0;
       padding-left: 1.1rem;
       position: relative;
-      font-size: 0.88rem;
+      font-size: 0.875rem;
       line-height: 1.5;
-      color: #374151;
+      color: var(--color-text-secondary);
     }
-    .panel-list li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+    .panel-list li::before { content: "—"; position: absolute; left: 0; color: var(--color-text-muted); }
 
     /* ── AI Reasoning Modal ── */
     .modal-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(15,23,42,0.35);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -277,9 +267,10 @@
     .modal-backdrop.open { display: flex; }
 
     .modal {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
       width: 100%;
       max-width: 580px;
       max-height: 85vh;
@@ -292,25 +283,25 @@
       align-items: center;
       justify-content: space-between;
       padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--color-border);
       flex-shrink: 0;
     }
     .modal-title {
       font-size: 0.95rem;
       font-weight: 700;
-      color: #1a1a2e;
+      color: var(--color-text);
     }
     .modal-close {
       background: none;
       border: none;
       font-size: 1.1rem;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       cursor: pointer;
       line-height: 1;
       padding: 0.2rem 0.4rem;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
     }
-    .modal-close:hover { color: #374151; background: #f3f4f6; }
+    .modal-close:hover { color: var(--color-text-secondary); background: #f1f5f9; }
 
     .modal-body {
       padding: 1.5rem;
@@ -326,29 +317,27 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       margin-bottom: 0.6rem;
     }
 
-    .modal-divider { border: none; border-top: 1px solid #e5e7eb; margin: 0; }
+    .modal-divider { border: none; border-top: 1px solid var(--color-border); margin: 0; }
 
-    /* confidence in modal */
     .modal-conf-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       margin-bottom: 0.5rem;
     }
-    .modal-conf-score { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; }
-    .modal-conf-tier { font-size: 0.82rem; color: #6b7280; }
-    .modal-bar-track { height: 5px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
+    .modal-conf-score { font-size: 1.1rem; font-weight: 700; color: var(--color-text); }
+    .modal-conf-tier { font-size: 0.82rem; color: var(--color-text-muted); }
+    .modal-bar-track { height: 4px; background: var(--color-border); border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
     .modal-bar-fill { height: 100%; border-radius: 999px; }
     .conf-high { background: #10b981; }
     .conf-mid  { background: #f59e0b; }
     .conf-low  { background: #ef4444; }
-    .modal-conf-desc { font-size: 0.82rem; color: #6b7280; line-height: 1.5; }
+    .modal-conf-desc { font-size: 0.82rem; color: var(--color-text-muted); line-height: 1.5; }
 
-    /* decision trace in modal */
     .modal-trace-list {
       list-style: none;
       padding: 0;
@@ -363,29 +352,28 @@
       gap: 0.75rem;
       font-size: 0.86rem;
       line-height: 1.55;
-      color: #374151;
+      color: var(--color-text-secondary);
     }
     .modal-trace-list li::before {
       content: counter(trace);
       flex-shrink: 0;
       width: 1.4rem;
       height: 1.4rem;
-      background: #f3f4f6;
+      background: #f1f5f9;
       border-radius: 50%;
       font-size: 0.68rem;
       font-weight: 700;
-      color: #6b7280;
+      color: var(--color-text-muted);
       display: flex;
       align-items: center;
       justify-content: center;
       margin-top: 0.1rem;
     }
 
-    /* risk flags in modal */
     .modal-flag-card {
       background: #fffbeb;
       border: 1px solid #fcd34d;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       padding: 0.85rem 1rem;
     }
     .modal-flag-name {
@@ -428,7 +416,7 @@
     @media (max-width: 600px) {
       .wrapper { padding: 1rem; }
       .summary-strip { grid-template-columns: 1fr; }
-      .strip-col + .strip-col { border-left: none; border-top: 1px solid #e5e7eb; }
+      .strip-col + .strip-col { border-left: none; border-top: 1px solid var(--color-border); }
       .strip-col--action-alert { border-left: none !important; border-top: 2px solid #fbbf24 !important; }
       .strip-col--action-reject { border-left: none !important; border-top: 2px solid #fca5a5 !important; }
       .middle-row { grid-template-columns: 1fr; }
@@ -441,10 +429,13 @@
   <div class="wrapper">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
       <a class="back" style="margin-bottom:0;" href="/">&#8592; Triage another claim</a>
+      {% if not result.error %}
+      <button class="verify-btn" style="margin-bottom:0;" onclick="document.getElementById('pdf-download-form').submit()">Download PDF</button>
+      {% endif %}
     </div>
     {% if result.error %}<h1>Triage Result</h1>{% else %}
     <div style="margin-bottom: 1rem;">
-      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.3rem;">Triage Result</div>
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); margin-bottom: 0.3rem;">Triage Result</div>
       <h1>{{ result.claim_type|title }}</h1>
     </div>
     {% endif %}
@@ -473,7 +464,7 @@
 
         <div class="strip-col strip-col--severity">
           <div class="strip-eyebrow">Severity</div>
-          <span class="severity-badge severity-{{ result.severity|lower }}">{{ result.severity }}</span>
+          <span class="severity-badge strip-severity-badge severity-{{ result.severity|lower }}">{{ result.severity }}</span>
         </div>
 
         <div class="strip-col
@@ -555,6 +546,14 @@
     </details>
 
   </div>
+
+  {% if not result.error %}
+  <form id="pdf-download-form" method="post" action="{% url 'result_pdf' %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="result_json" value="{{ result_json|escape }}">
+    <input type="hidden" name="fnol_text" value="{{ fnol_text|escape }}">
+  </form>
+  {% endif %}
 
   <!-- Right-side detail panel (action reasoning) -->
   <div id="detail-panel" class="detail-panel">

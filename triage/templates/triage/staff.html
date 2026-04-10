@@ -5,9 +5,7 @@
     .wrapper { max-width: 960px; margin: 0 auto; padding: 2rem; }
 
     .page-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem; }
-    h1 { font-size: 1.5rem; font-weight: 700; }
-    .back { font-size: 0.9rem; color: #2563eb; text-decoration: none; }
-    .back:hover { text-decoration: underline; }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; }
 
     .region-section { margin-bottom: 2rem; }
     .region-heading {
@@ -15,7 +13,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       margin-bottom: 0.75rem;
       padding-left: 0.25rem;
     }
@@ -27,9 +25,6 @@
     }
 
     .handler-card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
       padding: 1.4rem 1.5rem;
       display: flex;
       flex-direction: column;
@@ -37,8 +32,8 @@
     }
 
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; }
-    .handler-name { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
-    .handler-role { font-size: 0.82rem; color: #6b7280; margin-top: 0.2rem; }
+    .handler-name { font-size: 1.05rem; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+    .handler-role { font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 0.2rem; }
 
     .region-badge {
       flex-shrink: 0;
@@ -54,31 +49,31 @@
     .region-americas { background: #fce7f3; color: #831843; }
     .region-global  { background: #f3e8ff; color: #6b21a8; }
 
-    .field-row { font-size: 0.84rem; color: #374151; line-height: 1.5; }
+    .field-row { font-size: 0.84rem; color: var(--color-text-secondary); line-height: 1.5; }
     .field-label {
       font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       display: block;
       margin-bottom: 0.15rem;
     }
 
-    .bio { font-size: 0.82rem; color: #6b7280; line-height: 1.55; border-top: 1px solid #f3f4f6; padding-top: 0.65rem; }
+    .bio { font-size: 0.82rem; color: var(--color-text-muted); line-height: 1.55; border-top: 1px solid #f1f5f9; padding-top: 0.65rem; }
 
     .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
     .tag {
       font-size: 0.72rem;
       font-weight: 600;
-      background: #f3f4f6;
-      color: #374151;
+      background: #f1f5f9;
+      color: var(--color-text-secondary);
       padding: 0.15rem 0.5rem;
       border-radius: 4px;
     }
 
-    .exp-line { font-size: 0.78rem; color: #6b7280; }
-    .exp-num { font-weight: 700; color: #1a1a2e; }
+    .exp-line { font-size: 0.78rem; color: var(--color-text-muted); }
+    .exp-num { font-weight: 700; color: var(--color-text); }
 
     @media (max-width: 640px) {
       .wrapper { padding: 1rem; }
@@ -90,7 +85,7 @@
   <div class="wrapper">
     <div class="page-header">
       <h1>Staff Directory</h1>
-      <a class="back" href="/">&#8592; Triage a claim</a>
+      <a class="back" style="margin-bottom:0;" href="/">&#8592; Triage a claim</a>
     </div>
 
     {% for region, handlers in regions %}
@@ -98,7 +93,7 @@
       <div class="region-heading">{{ region }}</div>
       <div class="handler-grid">
         {% for handler in handlers %}
-        <div class="handler-card">
+        <div class="card handler-card">
 
           <div class="card-top">
             <div>

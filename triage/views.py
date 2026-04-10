@@ -1,7 +1,8 @@
 import json
 import os
+from io import BytesIO
 
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -57,7 +58,11 @@ def index(request):
         })
 
     result = process_fnol(fnol_text)
-    return render(request, "triage/result.html", {"result": result, "fnol_text": fnol_text})
+    return render(request, "triage/result.html", {
+        "result": result,
+        "fnol_text": fnol_text,
+        "result_json": json.dumps(result),
+    })
 
 
 @require_http_methods(["POST"])
@@ -125,7 +130,11 @@ def triage_stream(request):
                 else:
                     html = render_to_string(
                         "triage/result.html",
-                        {"result": item, "fnol_text": fnol_text},
+                        {
+                            "result": item,
+                            "fnol_text": fnol_text,
+                            "result_json": json.dumps(item),
+                        },
                         request=request,
                     )
                     yield f"data: {json.dumps({'type': 'done', 'html': html})}\n\n"
@@ -133,6 +142,34 @@ def triage_stream(request):
     response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
     response["Cache-Control"] = "no-cache"
     response["X-Accel-Buffering"] = "no"
+    return response
+
+
+@require_http_methods(["POST"])
+def result_pdf(request):
+    from weasyprint import HTML
+
+    result_json = request.POST.get("result_json", "")
+    fnol_text = request.POST.get("fnol_text", "")
+
+    try:
+        result = json.loads(result_json)
+    except (json.JSONDecodeError, ValueError):
+        return HttpResponse("Invalid result data.", status=400)
+
+    html_string = render_to_string(
+        "triage/result_pdf.html",
+        {"result": result, "fnol_text": fnol_text},
+        request=request,
+    )
+
+    pdf_bytes = BytesIO()
+    HTML(string=html_string, base_url=request.build_absolute_uri("/")).write_pdf(pdf_bytes)
+    pdf_bytes.seek(0)
+
+    claim_type = result.get("claim_type", "triage").replace(" ", "_")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="claimsprint_{claim_type}.pdf"'
     return response
 
 

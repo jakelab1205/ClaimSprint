@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ClaimSprint Triage Report</title>
+  <style>
+    @page {
+      margin: 2cm 2cm 2.5cm 2cm;
+      @bottom-center {
+        content: "ClaimSprint — AI-assisted triage report. Requires human review before any claim decision.";
+        font-family: "Liberation Sans", Arial, sans-serif;
+        font-size: 7pt;
+        color: #94a3b8;
+      }
+      @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: "Liberation Sans", Arial, sans-serif;
+        font-size: 7pt;
+        color: #94a3b8;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 9.5pt;
+      color: #1e293b;
+      line-height: 1.5;
+      background: #fff;
+    }
+
+    /* ── Header ── */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 2px solid #1e293b;
+      padding-bottom: 0.5cm;
+      margin-bottom: 0.6cm;
+    }
+    .report-brand {
+      font-size: 16pt;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #1e293b;
+    }
+    .report-meta {
+      font-size: 7.5pt;
+      color: #64748b;
+      text-align: right;
+    }
+
+    /* ── Disclaimer ── */
+    .ai-disclaimer {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #94a3b8;
+      padding: 0.25cm 0.4cm;
+      font-size: 7.5pt;
+      color: #64748b;
+      margin-bottom: 0.5cm;
+    }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 0.25cm;
+    }
+
+    /* ── Summary grid ── */
+    .summary-grid {
+      display: table;
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      margin-bottom: 0.5cm;
+      border-collapse: collapse;
+    }
+    .summary-grid-row {
+      display: table-row;
+    }
+    .summary-cell {
+      display: table-cell;
+      padding: 0.35cm 0.45cm;
+      border-right: 1px solid #e2e8f0;
+      vertical-align: top;
+      width: 33.33%;
+    }
+    .summary-cell:last-child {
+      border-right: none;
+    }
+    .cell-label {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 0.15cm;
+    }
+    .cell-value {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+    .cell-sub {
+      font-size: 8pt;
+      color: #64748b;
+      margin-top: 0.1cm;
+    }
+
+    /* ── Severity badge ── */
+    .severity-badge {
+      display: inline-block;
+      border-radius: 999px;
+      font-size: 9pt;
+      font-weight: 700;
+      padding: 2pt 8pt;
+    }
+    .severity-low      { background: #dcfce7; color: #166534; }
+    .severity-medium   { background: #fef9c3; color: #854d0e; }
+    .severity-high     { background: #ffedd5; color: #9a3412; }
+    .severity-critical { background: #fee2e2; color: #991b1b; }
+
+    /* ── Action cell highlight ── */
+    .cell-action-urgent { background: #fffbeb; }
+    .cell-action-reject { background: #fff1f2; }
+    .action-label {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    /* ── Two-column row ── */
+    .two-col {
+      display: table;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0.3cm 0;
+      margin-bottom: 0.5cm;
+    }
+    .two-col-cell {
+      display: table-cell;
+      width: 50%;
+      vertical-align: top;
+    }
+
+    /* ── Cards ── */
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0.35cm 0.45cm;
+    }
+
+    .field-label {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+      margin-right: 3pt;
+    }
+    .field-value {
+      font-size: 9pt;
+      color: #334155;
+    }
+    .field-row { margin-bottom: 0.15cm; }
+
+    .handler-name {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.2cm;
+    }
+    .handler-reason {
+      font-size: 8pt;
+      font-style: italic;
+      color: #64748b;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 0.2cm;
+      margin-top: 0.2cm;
+      line-height: 1.5;
+    }
+
+    /* ── Lists ── */
+    .bullet-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .bullet-list li {
+      padding: 2pt 0 2pt 12pt;
+      position: relative;
+      font-size: 8.5pt;
+      color: #334155;
+      line-height: 1.45;
+    }
+    .bullet-list li::before {
+      content: "\2014";
+      position: absolute;
+      left: 0;
+      color: #94a3b8;
+    }
+
+    .ordered-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      counter-reset: step;
+    }
+    .ordered-list li {
+      counter-increment: step;
+      padding: 3pt 0 3pt 20pt;
+      position: relative;
+      font-size: 8.5pt;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .ordered-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      width: 14pt;
+      height: 14pt;
+      background: #f1f5f9;
+      border-radius: 50%;
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: #64748b;
+      text-align: center;
+      line-height: 14pt;
+      top: 3pt;
+    }
+
+    /* ── Coverage pills ── */
+    .coverage-row {
+      margin-bottom: 0.5cm;
+    }
+    .coverage-pill {
+      display: inline-block;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #475569;
+      padding: 2pt 7pt;
+      margin: 2pt 3pt 2pt 0;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 0.4cm 0;
+    }
+
+    /* ── Confidence bar ── */
+    .conf-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.15cm;
+    }
+    .conf-score { font-size: 11pt; font-weight: 700; color: #1e293b; }
+    .conf-tier  { font-size: 8pt; color: #64748b; }
+    .bar-track {
+      height: 4pt;
+      background: #e2e8f0;
+      border-radius: 999px;
+      margin-bottom: 0.15cm;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; }
+    .conf-high { background: #10b981; }
+    .conf-mid  { background: #f59e0b; }
+    .conf-low  { background: #ef4444; }
+    .conf-desc { font-size: 8pt; color: #64748b; line-height: 1.5; }
+
+    /* ── Risk flag card ── */
+    .risk-card {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 4px;
+      padding: 0.3cm 0.4cm;
+      margin-bottom: 0.25cm;
+      page-break-inside: avoid;
+    }
+    .risk-flag-name { font-size: 9pt; font-weight: 700; color: #92400e; margin-bottom: 0.15cm; }
+    .risk-sublabel {
+      font-size: 6.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #b45309;
+      margin-bottom: 0.1cm;
+    }
+    .risk-checks { list-style: none; padding: 0; margin: 0 0 0.15cm 0; }
+    .risk-checks li {
+      font-size: 8.5pt;
+      color: #78350f;
+      padding: 1pt 0 1pt 12pt;
+      position: relative;
+      line-height: 1.5;
+    }
+    .risk-checks li::before { content: "\2014"; position: absolute; left: 0; color: #d97706; }
+    .risk-note {
+      font-size: 8pt;
+      color: #92400e;
+      font-style: italic;
+      border-top: 1px solid #fcd34d;
+      padding-top: 0.15cm;
+      line-height: 1.5;
+    }
+
+    /* ── FNOL text ── */
+    .fnol-pre {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0.3cm 0.4cm;
+      font-family: "Liberation Mono", "Courier New", monospace;
+      font-size: 7.5pt;
+      line-height: 1.6;
+      color: #475569;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Page-break hints ── */
+    .keep-together { page-break-inside: avoid; }
+    .page-break-before { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="report-header">
+    <div class="report-brand">ClaimSprint</div>
+    <div class="report-meta">
+      Triage Report<br>
+      {% now "j N Y" %}
+    </div>
+  </div>
+
+  <div class="ai-disclaimer">
+    AI-assisted triage &mdash; requires human review before any claim decision.
+  </div>
+
+  <!-- 1. Summary strip -->
+  <div class="section-title">Triage Summary</div>
+  <div class="summary-grid keep-together">
+    <div class="summary-grid-row">
+
+      <div class="summary-cell">
+        <div class="cell-label">Claim Type</div>
+        <div class="cell-value">{{ result.claim_type|title }}</div>
+        <div class="cell-sub">{{ result.claim_subtype }}</div>
+      </div>
+
+      <div class="summary-cell">
+        <div class="cell-label">Severity</div>
+        <div style="margin-top: 2pt;">
+          <span class="severity-badge severity-{{ result.severity|lower }}">{{ result.severity }}</span>
+        </div>
+      </div>
+
+      <div class="summary-cell
+        {% if result.recommended_action == 'assign_to_handler_urgent' or result.recommended_action == 'escalate_to_senior' %}cell-action-urgent
+        {% elif result.recommended_action == 'reject' %}cell-action-reject
+        {% endif %}">
+        <div class="cell-label">Recommended Action</div>
+        <div class="action-label">
+          {% if result.recommended_action == 'assign_to_handler' %}Assign to Handler
+          {% elif result.recommended_action == 'assign_to_handler_urgent' %}Assign &mdash; Urgent
+          {% elif result.recommended_action == 'escalate_to_senior' %}Escalate to Senior
+          {% elif result.recommended_action == 'request_documentation' %}Request Documentation
+          {% elif result.recommended_action == 'reject' %}Reject Claim
+          {% else %}{{ result.recommended_action }}
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. Action Reasoning -->
+  {% if result.action_reasoning %}
+  <div class="keep-together" style="margin-bottom: 0.5cm;">
+    <div class="section-title">Action Reasoning</div>
+    <div class="card">
+      <ul class="bullet-list">
+        {% for step in result.action_reasoning %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 3. Handler + Severity Factors -->
+  <div class="two-col keep-together" style="margin-bottom: 0.5cm;">
+    <div class="two-col-cell">
+      <div class="section-title">Assigned Handler</div>
+      <div class="card">
+        <div class="handler-name">{{ result.recommended_handler.name }}</div>
+        <div class="field-row">
+          <span class="field-label">Role</span><span class="field-value">{{ result.recommended_handler.role }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Region</span><span class="field-value">{{ result.recommended_handler.region }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Speciality</span><span class="field-value">{{ result.recommended_handler.speciality }}</span>
+        </div>
+        <div class="handler-reason">{{ result.recommended_handler.reason }}</div>
+      </div>
+    </div>
+
+    <div class="two-col-cell">
+      <div class="section-title">Severity Factors</div>
+      <div class="card">
+        <ul class="bullet-list">
+          {% for factor in result.severity_factors %}
+            <li>{{ factor }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Coverage Flags -->
+  {% if result.coverage_flags %}
+  <div class="coverage-row keep-together">
+    <div class="section-title">Coverage Flags</div>
+    {% for flag in result.coverage_flags %}
+      <span class="coverage-pill">{{ flag }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 5. AI Reasoning -->
+  {% if result.confidence_score is not None or result.reasoning_chain or result.risk_flag_explanations %}
+  <hr class="divider">
+  <div class="section-title">AI Reasoning</div>
+
+    {% if result.confidence_score is not None %}
+    {% with score=result.confidence_score %}
+    <div class="keep-together" style="margin-bottom: 0.4cm;">
+      <div class="conf-row">
+        <span class="conf-score">{{ score|floatformat:2 }}</span>
+        <span class="conf-tier">
+          {% if score >= 0.75 %}High confidence
+          {% elif score >= 0.5 %}Moderate confidence
+          {% else %}Low confidence
+          {% endif %}
+        </span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill {% if score >= 0.75 %}conf-high{% elif score >= 0.5 %}conf-mid{% else %}conf-low{% endif %}"
+             style="width: {% widthratio score 1 100 %}%;"></div>
+      </div>
+      <div class="conf-desc">
+        {% if score >= 0.75 %}FNOL is well-documented and classification is unambiguous. Handler can proceed with confidence.
+        {% elif score >= 0.5 %}Some details are missing or were inferred. Review the decision trace before assigning.
+        {% else %}FNOL is sparse or ambiguous. Treat this result as provisional and request additional documentation before proceeding.
+        {% endif %}
+      </div>
+    </div>
+    {% endwith %}
+    {% endif %}
+
+    {% if result.reasoning_chain %}
+    <div class="keep-together" style="margin-bottom: 0.4cm;">
+      <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 0.15cm;">Decision Trace</div>
+      <ol class="ordered-list">
+        {% for step in result.reasoning_chain %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
+
+    {% if result.risk_flag_explanations %}
+    <div style="margin-bottom: 0.4cm;">
+      <div style="font-size: 8pt; font-weight: 700; color: #475569; margin-bottom: 0.2cm;">Coverage Flag Detail</div>
+      {% for item in result.risk_flag_explanations %}
+      <div class="risk-card">
+        <div class="risk-flag-name">{{ item.flag }}</div>
+        {% if item.must_verify %}
+        <div class="risk-sublabel">Must verify</div>
+        <ul class="risk-checks">
+          {% for check in item.must_verify %}
+            <li>{{ check }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if item.risk_if_unverified %}
+        <div class="risk-note">{{ item.risk_if_unverified }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  {% endif %}
+
+  <!-- 6. Submitted FNOL Text -->
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom: 0.2cm;">Submitted FNOL Text</div>
+  <div class="fnol-pre">{{ fnol_text }}</div>
+
+</body>
+</html>

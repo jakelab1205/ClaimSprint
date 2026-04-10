@@ -3,51 +3,21 @@
 
 {% block styles %}
     .wrapper { max-width: 720px; margin: 0 auto; padding: 2rem; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
-    .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
-    .back:hover { text-decoration: underline; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.3px; }
 
-    .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.5rem 2rem; margin-bottom: 1rem; }
-    .card-heading { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; }
-    .card-eyebrow { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.4rem; }
+    .card { padding: 1.5rem 2rem; margin-bottom: 1rem; }
+    .card-heading { font-size: 1rem; font-weight: 700; color: var(--color-text); margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-border); }
+    .card-eyebrow { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); margin-bottom: 0.4rem; }
 
     .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
     .field-block { display: flex; flex-direction: column; }
-    .field-block label { font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; }
-    .field-block input, .field-block textarea {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d0d5dd;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      color: #1a1a2e;
-    }
-    .field-block input:focus, .field-block textarea:focus {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-    }
-    .field-block textarea { resize: vertical; line-height: 1.5; }
-    .field-hint { font-size: 0.73rem; color: #9ca3af; margin-top: 0.3rem; }
+    .field-block label { font-size: 0.82rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 0.35rem; }
+    .field-hint { font-size: 0.73rem; color: var(--color-text-muted); margin-top: 0.3rem; }
     .field-error { font-size: 0.78rem; color: #991b1b; margin-top: 0.3rem; }
 
-    .form-error { background: #fff1f2; border: 1px solid #fecaca; border-left: 4px solid #f87171; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #991b1b; margin-bottom: 1rem; }
-    .success-banner { background: #d1fae5; border: 1px solid #6ee7b7; border-left: 4px solid #10b981; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.85rem; font-weight: 600; color: #065f46; margin-bottom: 1rem; }
+    .updated-at { font-size: 0.73rem; color: var(--color-text-muted); margin-top: 0.75rem; text-align: right; }
 
-    .updated-at { font-size: 0.73rem; color: #9ca3af; margin-top: 0.75rem; text-align: right; }
-
-    .save-btn {
-      margin-top: 0.5rem;
-      padding: 0.75rem 2rem;
-      background: #1d4ed8;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .save-btn:hover { background: #1e40af; }
+    .save-btn { margin-top: 0.5rem; }
 
     @media (max-width: 520px) {
       .wrapper { padding: 1rem; }
@@ -60,13 +30,13 @@
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.25rem;">
       <a class="back" style="margin-bottom:0;" href="/">&#8592; Back to Triage</a>
     </div>
-    <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
-      <a href="/settings/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#1d4ed8; color:#fff; text-decoration:none;">Severity Thresholds</a>
-      <a href="/settings/claim-types/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f3f4f6; color:#374151; text-decoration:none;">Claim Types</a>
-      <a href="/settings/handlers/" style="padding:0.4rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:600; background:#f3f4f6; color:#374151; text-decoration:none;">Handlers</a>
+    <div class="settings-tabs">
+      <a href="/settings/" class="settings-tab settings-tab--active">Severity Thresholds</a>
+      <a href="/settings/claim-types/" class="settings-tab settings-tab--inactive">Claim Types</a>
+      <a href="/settings/handlers/" class="settings-tab settings-tab--inactive">Handlers</a>
     </div>
     <h1>Severity Thresholds</h1>
-    <p style="font-size:0.9rem; color:#6b7280; margin-bottom:1.5rem;">
+    <p style="font-size:0.9rem; color:var(--color-text-secondary); margin-bottom:1.5rem;">
       These thresholds determine how the AI classifies claim severity. Changes take effect on the next FNOL submission.
     </p>
 

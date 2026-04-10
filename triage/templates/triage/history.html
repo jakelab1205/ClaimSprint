@@ -3,51 +3,25 @@
 
 {% block styles %}
     .wrapper { max-width: 960px; margin: 0 auto; padding: 2rem; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
-    .back { display: inline-block; margin-bottom: 1.25rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
-    .back:hover { text-decoration: underline; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.3px; }
 
-    .severity-badge { padding: 0.2rem 0.6rem; font-size: 0.78rem; white-space: nowrap; }
+    .severity-badge { padding: 0.2rem 0.6rem; white-space: nowrap; }
 
-    .table-wrap {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
-      overflow: hidden;
-    }
+    .claim-type { font-weight: 600; color: var(--color-text); }
+    .claim-subtype { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.15rem; }
 
-    table { width: 100%; border-collapse: collapse; }
-    thead { background: #f9fafb; }
-    thead th {
-      text-align: left;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #9ca3af;
-      padding: 0.85rem 1.25rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    tbody tr { border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.1s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #f9fafb; }
-    tbody td { padding: 0.85rem 1.25rem; font-size: 0.88rem; color: #374151; vertical-align: top; }
-
-    .claim-type { font-weight: 600; color: #1a1a2e; }
-    .claim-subtype { font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
-
-    .action-label { font-size: 0.88rem; color: #374151; }
+    .action-label { font-size: 0.875rem; color: var(--color-text-secondary); }
     .action-urgent { color: #92400e; font-weight: 600; }
     .action-reject { color: #991b1b; font-weight: 600; }
     .action-escalate { color: #92400e; font-weight: 600; }
 
-    .handler-name { font-weight: 600; color: #1a1a2e; }
-    .handler-region { font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
+    .handler-name { font-weight: 600; color: var(--color-text); }
+    .handler-region { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.15rem; }
 
-    .timestamp { font-size: 0.82rem; color: #6b7280; white-space: nowrap; }
+    .timestamp { font-size: 0.82rem; color: var(--color-text-muted); white-space: nowrap; }
 
     /* Expanded row detail */
-    .detail-row td { background: #f9fafb; padding: 1rem 1.25rem 1.25rem; }
+    .detail-row td { background: #f8fafc; padding: 1rem 1.25rem 1.25rem; }
     .detail-row { display: none; }
     .detail-row.visible { display: table-row; }
 
@@ -57,7 +31,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       margin-bottom: 0.4rem;
     }
     .detail-list { list-style: none; padding: 0; }
@@ -67,38 +41,26 @@
       position: relative;
       font-size: 0.84rem;
       line-height: 1.45;
-      color: #374151;
+      color: var(--color-text-secondary);
     }
-    .detail-list li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
-
-    .coverage-pill {
-      display: inline-block;
-      background: #fef3c7;
-      border: 1px solid #fcd34d;
-      color: #92400e;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.15rem 0.6rem;
-      border-radius: 999px;
-      margin: 0.2rem 0.2rem 0 0;
-    }
+    .detail-list li::before { content: "—"; position: absolute; left: 0; color: var(--color-text-muted); }
 
     .handler-reason {
       font-style: italic;
       font-size: 0.82rem;
-      color: #6b7280;
+      color: var(--color-text-muted);
       margin-top: 0.4rem;
     }
 
-    .expand-chevron { font-size: 0.9rem; color: #9ca3af; transition: transform 0.15s ease; display: inline-block; }
+    .expand-chevron { font-size: 0.9rem; color: var(--color-text-muted); transition: transform 0.15s ease; display: inline-block; }
     tr.active-row .expand-chevron { transform: rotate(90deg); }
-    tr.active-row { background: #f9fafb; }
+    tr.active-row { background: #f8fafc; }
 
     /* Empty state */
     .empty {
       text-align: center;
       padding: 3rem 2rem;
-      color: #9ca3af;
+      color: var(--color-text-muted);
       font-size: 0.95rem;
     }
 
@@ -190,7 +152,7 @@
                 </div>
                 <div>
                   <div class="detail-section-label">Handler</div>
-                  <div style="font-size:0.85rem; color:#374151;">
+                  <div style="font-size:0.85rem; color:var(--color-text-secondary);">
                     <strong>{{ entry.recommended_handler.name }}</strong><br>
                     {{ entry.recommended_handler.role }}<br>
                     {{ entry.recommended_handler.speciality }}
@@ -215,7 +177,7 @@
                   <div class="detail-section-label">Decision Trace</div>
                   <ol style="padding-left:1.2rem; margin-top:0.3rem;">
                     {% for step in entry.reasoning_chain %}
-                      <li style="font-size:0.83rem; color:#374151; line-height:1.5; padding:0.2rem 0;">{{ step }}</li>
+                      <li style="font-size:0.83rem; color:var(--color-text-secondary); line-height:1.5; padding:0.2rem 0;">{{ step }}</li>
                     {% endfor %}
                   </ol>
                 </div>
