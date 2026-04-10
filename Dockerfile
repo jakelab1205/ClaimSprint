@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2 \
     libxslt1.1 \
     fonts-liberation \
+    tesseract-ocr \
+    tesseract-ocr-nld \
+    tesseract-ocr-deu \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

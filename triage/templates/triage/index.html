@@ -136,7 +136,7 @@
           <div class="tabs">
             <button type="button" class="tab-btn active" id="tab-text" onclick="switchTab('text')">Free Text</button>
             <button type="button" class="tab-btn" id="tab-form" onclick="switchTab('form')">Structured Form</button>
-            <button type="button" class="tab-btn" id="tab-pdf" onclick="switchTab('pdf')">PDF Upload</button>
+            <button type="button" class="tab-btn" id="tab-pdf" onclick="switchTab('pdf')">File Upload</button>
           </div>
 
           <!-- Free Text Panel -->
@@ -206,10 +206,10 @@
             {% endif %}
             <div class="pdf-area">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" style="display:none;" onchange="document.getElementById('pdf-filename').textContent = this.files.length ? this.files[0].name : 'No file selected';">
-              <button type="button" class="pdf-choose-btn" onclick="document.getElementById('pdf_file').click();">Choose PDF file</button>
+              <input type="file" id="upload_file" name="upload_file" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.docx,.xlsx,.txt,.eml" style="display:none;" onchange="document.getElementById('pdf-filename').textContent = this.files.length ? this.files[0].name : 'No file selected';">
+              <button type="button" class="pdf-choose-btn" onclick="document.getElementById('upload_file').click();">Choose file</button>
               <div id="pdf-filename" class="pdf-filename">No file selected</div>
-              <p class="pdf-note">Text-based PDFs only. Scanned images cannot be processed.</p>
+              <p class="pdf-note">Supported: PDF, JPG, PNG, TIFF, BMP, DOCX, XLSX, TXT, EML. Images are processed via OCR.</p>
             </div>
           </div>
 
@@ -269,9 +269,9 @@
         var text = document.getElementById('fnol_text').value.trim();
         if (!text) return false;
       } else if (mode === 'pdf') {
-        var fileInput = document.getElementById('pdf_file');
+        var fileInput = document.getElementById('upload_file');
         if (!fileInput.files || !fileInput.files.length) {
-          alert('Please select a PDF file to upload.');
+          alert('Please select a file to upload.');
           return false;
         }
       }
@@ -279,7 +279,7 @@
       document.getElementById('form-body').style.display = 'none';
       document.getElementById('loader').style.display = 'flex';
       var msgEl = document.getElementById('loader-msg');
-      if (mode === 'pdf') msgEl.textContent = 'Extracting PDF text\u2026';
+      if (mode === 'pdf') msgEl.textContent = 'Extracting file content\u2026';
 
       var streamEl = document.getElementById('stream-text');
       var streamBodyEl = document.getElementById('stream-body');

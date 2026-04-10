@@ -9,10 +9,10 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from .claude_client import _LOG_FILE, process_fnol, stream_fnol
+from .file_utils import ExtractionError, extract_text_from_file
 from .forms import ClaimTypeFormSet, FnolForm, HandlerFormSet, SeverityThresholdFormSet
 from .input_utils import form_data_to_fnol_text
 from .models import ClaimType, Handler, SeverityThreshold
-from .pdf_utils import PDFExtractionError, extract_text_from_pdf
 
 
 @require_http_methods(["GET", "POST"])
@@ -32,7 +32,7 @@ def index(request):
         fnol_text = form_data_to_fnol_text(fnol_form.cleaned_data)
 
     elif mode == "pdf":
-        uploaded = request.FILES.get("pdf_file")
+        uploaded = request.FILES.get("upload_file")
         if not uploaded:
             return render(request, "triage/index.html", {
                 "fnol_form": FnolForm(),
@@ -40,8 +40,8 @@ def index(request):
                 "pdf_error": "No file was uploaded.",
             })
         try:
-            fnol_text = extract_text_from_pdf(uploaded)
-        except PDFExtractionError as exc:
+            fnol_text = extract_text_from_file(uploaded, uploaded.name)
+        except ExtractionError as exc:
             return render(request, "triage/index.html", {
                 "fnol_form": FnolForm(),
                 "active_tab": "pdf",
@@ -86,7 +86,7 @@ def triage_stream(request):
         fnol_text = form_data_to_fnol_text(fnol_form.cleaned_data)
 
     elif mode == "pdf":
-        uploaded = request.FILES.get("pdf_file")
+        uploaded = request.FILES.get("upload_file")
         if not uploaded:
             def no_file_stream():
                 yield f"data: {json.dumps({'type': 'error', 'message': 'No file was uploaded.'})}\n\n"
@@ -96,8 +96,8 @@ def triage_stream(request):
             response["X-Accel-Buffering"] = "no"
             return response
         try:
-            fnol_text = extract_text_from_pdf(uploaded)
-        except PDFExtractionError as exc:
+            fnol_text = extract_text_from_file(uploaded, uploaded.name)
+        except ExtractionError as exc:
             msg = str(exc)
 
             def pdf_error_stream():
@@ -211,9 +211,10 @@ def api_triage(request):
             )
     else:
         if "file" in request.FILES:
+            uploaded = request.FILES["file"]
             try:
-                fnol_text = extract_text_from_pdf(request.FILES["file"])
-            except PDFExtractionError as exc:
+                fnol_text = extract_text_from_file(uploaded, uploaded.name)
+            except ExtractionError as exc:
                 return JsonResponse({"error": True, "message": str(exc)}, status=400)
         elif "text" in request.POST:
             fnol_text = request.POST["text"]
