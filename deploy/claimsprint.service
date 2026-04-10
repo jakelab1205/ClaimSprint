@@ -7,6 +7,8 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/srv/claimsprint
 EnvironmentFile=/srv/claimsprint/.env
+Environment=DJANGO_DEBUG=false
+Environment=DJANGO_ALLOWED_HOSTS=team-solo-1-workshop.i2go.io
 ExecStart=/srv/claimsprint/venv/bin/gunicorn \
     --workers 2 \
     --bind 127.0.0.1:8000 \

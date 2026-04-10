@@ -5,9 +5,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "claimsprint-prototype-secret-key-not-for-production"
 
-DEBUG = False
+DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() == "true"
 
-ALLOWED_HOSTS = ["team-solo-1-workshop.i2go.io"]
+_allowed = os.environ.get("DJANGO_ALLOWED_HOSTS", "*")
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(",")]
 
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
